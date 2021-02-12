@@ -115,6 +115,7 @@ class CustomCallbackA(BaseCallback):
 
      # TODO: maybe move to a separate file
     def util(self):
+        print("in util func")
         total_life_0 = total_life_1 = total_life_2 = total_life_3 = 1
         total_game_0 = total_game_1 = total_game_2 = total_game_3 = 1
         steps_life_0 = steps_life_1 = steps_life_2 = steps_life_3 = 1
@@ -123,149 +124,58 @@ class CustomCallbackA(BaseCallback):
         episode_reward_0 = episode_reward_1 = episode_reward_2 = episode_reward_3 = 0
         total_reward_0 = total_reward_1 = total_reward_2 = total_reward_3 = 0
         game_reward_0 = game_reward_1 = game_reward_2 = game_reward_3 = 0
+        # make a dictionary for the items above ^
+        env_info = OrderedDict()
+        for env_num in range(self.num_envs):
+            env_info = { env_num: {
+                'total_life_' + str(env_num) : 1,
+                'total_game_' + str(env_num) : 1,
+                'steps_life_' + str(env_num) : 1,
+                'steps_game_' + str(env_num) : 1,
+                'prev_life_' + str(env_num) : 3,
+                'life_reward_' + str(env_num) : 0,
+                'game_reward ' + str(env_num) : 0,
+                'total_reward_' + str(env_num) : 0
+                }
+            }
+        # TODO: move this check elsewhere
+        if(self.isLives):
+            # TODO: rewrite as a loop
+            for key, value in CustomCallbackA.main_data_dict.items():  
+                for i in range(self.num_envs):
+                    is_end_of_game = False
+                    # end of game
+                    if(value['lives_env_' + str(i)] == 0):
+                        CustomCallback.main_data_dict[key]['game_reward_env_'+str(i)] = env_info[i]['game_reward_'+str(i)]
+                        # reset_life
+                        env_info[i]['total_game_'+str(i)] += 1
+                        env_info[i]['steps_life_'+str(i)] = 1
+                        env_info[i]['steps_game_'+str(i)] = 1
+                        env_info[i]['life_reward_'+str(i)] = 0
+                        env_info[i]['game_reward_'+str(i)] = 0
+                        is_end_of_game = True
 
-        print("in util func")
-        for key, value in CustomCallbackA.main_data_dict.items():  
-            if(self.isLives):
-                # env_0
-                # game over (epoch)
-                if(value['lives_env_0'] == 0):
-                    total_game_0 += 1
-                    steps_game_0 = steps_life_0 = 0
-                    game_reward_0 = 0
-                    episode_reward_0 = 0
+                    # lost a life (episode)
+                    # record BEFORE lives is decremented
+                    elif(key != self.num_steps and value['lives_env_'+str(i)] != CustomCallbackA.main_data_dict[key+self.num_envs]['lives_env_'+str(i)]):
+                        CustomCallbackA.main_data_dict[key]['total_life_env_'+str(i)] = env_info[i]['total_life_'+str(i)]
+                        CustomCallback.main_data_dict[key]['life_reward_env_'+str(i)] = env_info[i]['life_reward_'+str(i)]
+                        env_info[i]['total_life_'+str(i)]  += 1
+                        env_info[i]['steps_life_'+str(i)] = 1
+                        env_info[i]['life_reward_'+str(i)] = 0
 
-                # lost a life (episode)
-                # record BEFORE lives is decremented
-                elif(key != self.num_steps and value['lives_env_0'] != CustomCallbackA.main_data_dict[key+self.num_envs]['lives_env_0']):
-                    CustomCallbackA.main_data_dict[key]['total_life_env_0'] = total_life_0
-                    total_life_0 += 1
-                    steps_life_0 = 1
-                    episode_reward_0 = 0
+                    env_info[i]['total_reward_'+str(i)] += value['step_reward_env_'+str(i)] 
+                    env_info[i]['prev_life_'+str(i)] = value['lives_env_'+str(i)]
 
-                total_reward_0 += CustomCallbackA.main_data_dict[key]['step_reward_env_0'] 
-                prev_life = value['lives_env_0']
-                CustomCallbackA.main_data_dict[key]['steps_life_env_0'] = steps_life_0
-                CustomCallbackA.main_data_dict[key]['steps_game_env_0'] = steps_game_0
-                CustomCallbackA.main_data_dict[key]['total_game_env_0'] = total_game_0
-                CustomCallbackA.main_data_dict[key]['total_reward_env_0'] = total_reward_0
+                    # update info in main dict
+                    CustomCallbackA.main_data_dict[key]['steps_life_env_'+str(i)] = env_info[i]['steps_life_'+str(i)] 
+                    CustomCallbackA.main_data_dict[key]['steps_game_env_'+str(i)] = env_info[i]['steps_game_'+str(i)]
+                    CustomCallbackA.main_data_dict[key]['total_game_env_'+str(i)] = env_info[i]['total_game_'+str(i)]
+                    CustomCallbackA.main_data_dict[key]['total_reward_env_'+str(i)] = env_info[i]['total_reward_'+str(i)]
+                    CustomCallbackA.main_data_dict[key]['is_end_of_game_env_'+str(i)] = is_end_of_game
+                    env_info[i]['steps_life_'+str(i)] += 1
+                    env_info[i]['steps_game_'+str(i)] += 1
 
-                steps_life_0 += 1
-                steps_game_0 += 1
-
-                # env_1
-                # game over (epoch)
-                if(value['lives_env_1'] == 0):
-                    total_game_1 += 1
-                    steps_game_1 = steps_life_1 = 0
-                    game_reward_1 = 0
-                    episode_reward_1 = 0
-
-                # lost a life (episode)
-                # record BEFORE lives is decremented
-                elif(key != self.num_steps and value['lives_env_1'] != CustomCallbackA.main_data_dict[key+self.num_envs]['lives_env_1']):
-                    CustomCallbackA.main_data_dict[key]['total_life_env_1'] = total_life_1
-                    total_life_1 += 1
-                    steps_life_1 = 1
-                    episode_reward_1 = 0
-
-                total_reward_1 += CustomCallbackA.main_data_dict[key]['step_reward_env_1'] 
-                prev_life_1 = value['lives_env_1']
-                CustomCallbackA.main_data_dict[key]['steps_life_env_1'] = steps_life_1
-                
-                CustomCallbackA.main_data_dict[key]['steps_game_env_1'] = steps_game_1
-                CustomCallbackA.main_data_dict[key]['total_game_env_1'] = total_game_1
-                CustomCallbackA.main_data_dict[key]['total_reward_env_1'] = total_reward_1
-
-                steps_life_1 += 1
-                steps_game_1 += 1
-
-                # env_2
-                # game over (epoch)
-                if(value['lives_env_2'] == 0):
-                    total_game_2 += 1
-                    steps_game_2 = steps_life_2 = 0
-                    game_reward_2 = 0
-                    episode_reward_2 = 0
-
-                # lost a life (episode)
-                # record BEFORE lives is decremented
-                elif(key != self.num_steps and value['lives_env_2'] != CustomCallbackA.main_data_dict[key+self.num_envs]['lives_env_2']):
-                    CustomCallbackA.main_data_dict[key]['total_life_env_2'] = total_life_2
-                    total_life_2 += 1
-                    steps_life_2 = 1
-                    episode_reward_2 = 0
-
-                total_reward_2 += CustomCallbackA.main_data_dict[key]['step_reward_env_2'] 
-                prev_life_2 = value['lives_env_2']
-                CustomCallbackA.main_data_dict[key]['steps_life_env_2'] = steps_life_2
-                
-                CustomCallbackA.main_data_dict[key]['steps_game_env_2'] = steps_game_2
-                CustomCallbackA.main_data_dict[key]['total_game_env_2'] = total_game_2
-                CustomCallbackA.main_data_dict[key]['total_reward_env_2'] = total_reward_2
-
-                steps_life_2 += 1
-                steps_game_2 += 1
-
-                # env_3
-                # game over (epoch)
-                if(value['lives_env_3'] == 0):
-                    total_game_3 += 1
-                    steps_game_3 = steps_life_3 = 0
-                    game_reward_3 = 0
-                    episode_reward_3 = 0
-
-                # lost a life (episode)
-                # record BEFORE lives is decremented
-                elif(key != self.num_steps and value['lives_env_3'] != CustomCallbackA.main_data_dict[key+self.num_envs]['lives_env_3']):
-                    CustomCallbackA.main_data_dict[key]['total_life_env_3'] = total_life_3
-                    total_life_3 += 1
-                    steps_life_3 = 1
-                    episode_reward_3 = 0
-
-                total_reward_3 += CustomCallbackA.main_data_dict[key]['step_reward_env_3'] 
-                prev_life_3 = value['lives_env_3']
-                CustomCallbackA.main_data_dict[key]['steps_life_env_3'] = steps_life_3
-                
-                CustomCallbackA.main_data_dict[key]['steps_game_env_3'] = steps_game_3
-                CustomCallbackA.main_data_dict[key]['total_game_env_3'] = total_game_3
-                CustomCallbackA.main_data_dict[key]['total_reward_env_3'] = total_reward_3
-
-                steps_life_3 += 1
-                steps_game_3 += 1
-            
-        
- 
-
-    # TODO: display total reward somewhere?? 
-    def total_episode_reward_logger(self, rew_acc, rewards, masks, writer, steps):
-        """
-        calculates the cumulated episode reward, and prints to tensorflow log the output
-        :param rew_acc: (np.array float) the total running reward
-        :param rewards: (np.array float) the rewards
-        :param masks: (np.array bool) the end of episodes
-        :param writer: (TensorFlow Session.writer) the writer to log to
-        :param steps: (int) the current timestep
-        :return: (np.array float) the updated total running reward
-        :return: (np.array float) the updated total running reward
-        """
-
-        for env_idx in range(rewards.shape[0]):
-            dones_idx = np.sort(np.argwhere(masks[env_idx]))
-
-            if len(dones_idx) == 0:
-                rew_acc[env_idx] += sum(rewards[env_idx])
-            else:
-                rew_acc[env_idx] += sum(rewards[env_idx, :dones_idx[0, 0]])
-                # summary = tf.Summary(value=[tf.Summary.Value(tag="episode_reward", simple_value=rew_acc[env_idx])])
-                # writer.add_summary(summary, steps + dones_idx[0, 0])
-                for k in range(1, len(dones_idx[:, 0])):
-                    rew_acc[env_idx] = sum(rewards[env_idx, dones_idx[k - 1, 0]:dones_idx[k, 0]])
-                    #summary = tf.Summary(value=[tf.Summary.Value(tag="episode_reward", simple_value=rew_acc[env_idx])])
-                    #writer.add_summary(summary, steps + dones_idx[k, 0])
-                rew_acc[env_idx] = sum(rewards[env_idx, dones_idx[-1, 0]:])
-
-        return rew_acc
     def _on_step(self) -> bool:
         """
         This method will be called by the model after each call to `env.step()`.
@@ -276,7 +186,6 @@ class CustomCallbackA(BaseCallback):
         :return: (bool) If the callback returns False, training is aborted early.
         """
         
-       
         # what timestep you think
         print("timestep ",CustomCallbackA.step)
         # what timestep a2c learn is on 
@@ -296,25 +205,13 @@ class CustomCallbackA(BaseCallback):
         # TODO: move out of this dict and add to dict with loop
         step_stats = {self.num_timesteps: {
             'num_timesteps': self.num_timesteps,
-            # 'action_env_0': self.locals['actions'][0],
-            # 'action_env_1': self.locals['actions'][1],
-            # 'action_env_2': self.locals['actions'][2],
-            # 'action_env_3': self.locals['actions'][3],
-            # 'action_name_env_0': self.actions[self.locals['actions'][0]],
-            # 'action_name_env_1': self.actions[self.locals['actions'][1]],
-            # 'action_name_env_2': self.actions[self.locals['actions'][2]],
-            # 'action_name_env_3': self.actions[self.locals['actions'][3]],
-            # 'step_reward_env_0': self.locals['rewards'][0],
-            # 'step_reward_env_1': self.locals['rewards'][1],
-            # 'step_reward_env_2': self.locals['rewards'][2],
-            # 'step_reward_env_3': self.locals['rewards'][3],
             'state': self.num_timesteps/self.num_envs,
-            #'lives':self.locals['infos']['ale.lives']
             }
         }
         # add step to dict
         CustomCallbackA.main_data_dict.update(step_stats)
         key = self.num_timesteps
+        # TODO: move back the action + step + lives stuff out of here, and move the rest to utils? 
         for i in range(self.num_envs):
             CustomCallbackA.main_data_dict[key]['action_env_'+str(i)] =  self.locals['actions'][i]
             CustomCallbackA.main_data_dict[key]['action_name_env_'+str(i)] =  self.actions[self.locals['actions'][i]]
@@ -324,59 +221,53 @@ class CustomCallbackA(BaseCallback):
                     CustomCallbackA.main_data_dict[key]['lives_env_'+str(i)] = 3
                 if(CustomCallbackA.step >= 2):
                     CustomCallbackA.main_data_dict[key]['lives_env_'+str(i)] = self.locals['infos'][i]['ale.lives']
-
-        # if(self.isLives == True and CustomCallbackA.step == 1):
-        #     for i in range(self.num_envs):
-        #         CustomCallbackA.main_data_dict[key]['lives_env_'+str(i)] = 3
-        # if(self.isLives == True and CustomCallbackA.step >= 2):
-        #     for i in range(self.num_envs):
-        #         CustomCallbackA.main_data_dict[key]['lives_env_'+str(i)] = self.locals['infos'][i]['ale.lives']
         
-        pacman_coord, pink_ghost_coord, red_ghost_coord, green_ghost_coord, orange_ghost_coord, to_pink_ghost, to_red_ghost, to_green_ghost, to_orange_ghost, pill_eaten, pill_dist, hasBlueGhost = cd.find_all_coords(
-            subfolder+"env_0"+img_name+"_.png")
-        CustomCallbackA.main_data_dict[key]['pacman_coord_x'] = pacman_coord[0]
-        CustomCallbackA.main_data_dict[key]['pacman_coord_y'] = pacman_coord[1]
-        CustomCallbackA.main_data_dict[key]['pink_ghost_coord_x'] = pink_ghost_coord[0]
-        CustomCallbackA.main_data_dict[key]['pink_ghost_coord_y'] = pink_ghost_coord[1]
-        CustomCallbackA.main_data_dict[key]['to_pink_ghost'] = to_pink_ghost
-        CustomCallbackA.main_data_dict[key]['red_ghost_coord_x'] = red_ghost_coord[0]
-        CustomCallbackA.main_data_dict[key]['red_ghost_coord_y'] = red_ghost_coord[1]
-        CustomCallbackA.main_data_dict[key]['to_red_ghost'] = to_red_ghost
-        CustomCallbackA.main_data_dict[key]['green_ghost_coord_x'] = green_ghost_coord[0]
-        CustomCallbackA.main_data_dict[key]['green_ghost_coord_y'] = green_ghost_coord[1]
-        CustomCallbackA.main_data_dict[key]['to_green_ghost'] = to_green_ghost
-        CustomCallbackA.main_data_dict[key]['orange_ghost_coord_x'] = orange_ghost_coord[0]
-        CustomCallbackA.main_data_dict[key]['orange_ghost_coord_y'] = orange_ghost_coord[1]
-        CustomCallbackA.main_data_dict[key]['to_orange_ghost'] = to_orange_ghost
+            filepath = subfolder+"env_" + str(i) + img_name + "_.png"
+            pacman_coord, pink_ghost_coord, red_ghost_coord, green_ghost_coord, orange_ghost_coord, to_pink_ghost, to_red_ghost, to_green_ghost, to_orange_ghost, pill_eaten, pill_dist, hasBlueGhost = cd.find_all_coords(
+                filepath)
+            CustomCallbackA.main_data_dict[key]['pacman_coord_x_env_'+ str(i)] = pacman_coord[0]
+            CustomCallbackA.main_data_dict[key]['pacman_coord_y_env_'+ str(i)] = pacman_coord[1]
+            CustomCallbackA.main_data_dict[key]['pink_ghost_coord_x_env_'+ str(i)] = pink_ghost_coord[0]
+            CustomCallbackA.main_data_dict[key]['pink_ghost_coord_y_env_'+ str(i)] = pink_ghost_coord[1]
+            CustomCallbackA.main_data_dict[key]['to_pink_ghost_env_' + str(i)] = to_pink_ghost
+            CustomCallbackA.main_data_dict[key]['red_ghost_coord_x_env_' + str(i) ] = red_ghost_coord[0]
+            CustomCallbackA.main_data_dict[key]['red_ghost_coord_y_env_'+ str(i)] = red_ghost_coord[1]
+            CustomCallbackA.main_data_dict[key]['to_red_ghost_env_'+ str(i)] = to_red_ghost
+            CustomCallbackA.main_data_dict[key]['green_ghost_coord_x_env_'+ str(i)] = green_ghost_coord[0]
+            CustomCallbackA.main_data_dict[key]['green_ghost_coord_y_env_'+ str(i)] = green_ghost_coord[1]
+            CustomCallbackA.main_data_dict[key]['to_green_ghost_env_'+ str(i)] = to_green_ghost
+            CustomCallbackA.main_data_dict[key]['orange_ghost_coord_x_env_'+ str(i)] = orange_ghost_coord[0]
+            CustomCallbackA.main_data_dict[key]['orange_ghost_coord_y_env_'+ str(i)] = orange_ghost_coord[1]
+            CustomCallbackA.main_data_dict[key]['to_orange_ghost_env_'+ str(i)] = to_orange_ghost
 
-        CustomCallbackA.main_data_dict[key]['pill_one_eaten'] = pill_eaten[0]
-        CustomCallbackA.main_data_dict[key]['to_pill_one'] = pill_dist[0]
-        CustomCallbackA.main_data_dict[key]['pill_two_eaten'] = pill_eaten[1]
-        CustomCallbackA.main_data_dict[key]['to_pill_two'] = pill_dist[1]
-        CustomCallbackA.main_data_dict[key]['pill_three_eaten'] = pill_eaten[2]
-        CustomCallbackA.main_data_dict[key]['to_pill_three'] = pill_dist[2]
-        CustomCallbackA.main_data_dict[key]['pill_four_eaten'] = pill_eaten[3]
-        CustomCallbackA.main_data_dict[key]['to_pill_four'] = pill_dist[3]
+            CustomCallbackA.main_data_dict[key]['pill_one_eaten_env_'+ str(i)] = pill_eaten[0]
+            CustomCallbackA.main_data_dict[key]['to_pill_one_env_'+ str(i)] = pill_dist[0]
+            CustomCallbackA.main_data_dict[key]['pill_two_eaten_env_'+ str(i)] = pill_eaten[1]
+            CustomCallbackA.main_data_dict[key]['to_pill_two_env_'+ str(i)] = pill_dist[1]
+            CustomCallbackA.main_data_dict[key]['pill_three_eaten_env_'+ str(i)] = pill_eaten[2]
+            CustomCallbackA.main_data_dict[key]['to_pill_three_env_'+ str(i)] = pill_dist[2]
+            CustomCallbackA.main_data_dict[key]['pill_four_eaten_env_'+ str(i)] = pill_eaten[3]
+            CustomCallbackA.main_data_dict[key]['to_pill_four_env_'+ str(i)] = pill_dist[3]
 
-        # find blue ghosts, if any
-        if(hasBlueGhost):
-            imagePeeler = GhostTracker()
-            # print("About to seek pacman at ", CustomCallbackA.step)
-            # ghost_coords = imagePeeler.wheresPacman(obs)
-            # ghost_coords = imagePeeler.wheresPacman(self.locals['obs'])
-            ghost_coords = imagePeeler.wheresPacman(cv.imread(subfolder+"env_0"+img_name+"_0.png"))
-            if(ghost_coords[0] != -1):
-                CustomCallbackA.main_data_dict[key]['dark_blue_ghost1_coord_x'] = ghost_coords[0]
-                CustomCallbackA.main_data_dict[key]['dark_blue_ghost1_coord_y'] = ghost_coords[1]
-            if(ghost_coords[2] != -1):
-                CustomCallbackA.main_data_dict[key]['dark_blue_ghost2_coord_x'] = ghost_coords[2]
-                CustomCallbackA.main_data_dict[key]['dark_blue_ghost2_coord_y'] = ghost_coords[3]
-            if(ghost_coords[4] != -1):
-                CustomCallbackA.main_data_dict[key]['dark_blue_ghost3_coord_x'] = ghost_coords[4]
-                CustomCallbackA.main_data_dict[key]['dark_blue_ghost3_coord_y'] = ghost_coords[5]
-            if(ghost_coords[6] != -1):
-                CustomCallbackA.main_data_dict[key]['dark_blue_ghost4_coord_x'] = ghost_coords[6]
-                CustomCallbackA.main_data_dict[key]['dark_blue_ghost4_coord_y'] = ghost_coords[7]
+            # find blue ghosts, if any
+            if(hasBlueGhost):
+                imagePeeler = GhostTracker()
+                # print("About to seek pacman at ", CustomCallbackA.step)
+                # ghost_coords = imagePeeler.wheresPacman(obs)
+                # ghost_coords = imagePeeler.wheresPacman(self.locals['obs'])
+                ghost_coords = imagePeeler.wheresPacman(cv.imread(filepath))
+                if(ghost_coords[0] != -1):
+                    CustomCallbackA.main_data_dict[key]['dark_blue_ghost1_coord_x_env_'+ str(i)] = ghost_coords[0]
+                    CustomCallbackA.main_data_dict[key]['dark_blue_ghost1_coord_y_env_'+ str(i)] = ghost_coords[1]
+                if(ghost_coords[2] != -1):
+                    CustomCallbackA.main_data_dict[key]['dark_blue_ghost2_coord_x_env_'+ str(i)] = ghost_coords[2]
+                    CustomCallbackA.main_data_dict[key]['dark_blue_ghost2_coord_y_env_'+ str(i)] = ghost_coords[3]
+                if(ghost_coords[4] != -1):
+                    CustomCallbackA.main_data_dict[key]['dark_blue_ghost3_coord_x_env_'+ str(i)] = ghost_coords[4]
+                    CustomCallbackA.main_data_dict[key]['dark_blue_ghost3_coord_y_env_'+ str(i)] = ghost_coords[5]
+                if(ghost_coords[6] != -1):
+                    CustomCallbackA.main_data_dict[key]['dark_blue_ghost4_coord_x_env_'+ str(i)] = ghost_coords[6]
+                    CustomCallbackA.main_data_dict[key]['dark_blue_ghost4_coord_y_env_'+ str(i)] = ghost_coords[7]
 
         if(CustomCallbackA.step == (self.num_steps/self.num_envs)):
             # print("dictionary ", CustomCallbackA.main_data_dict)
