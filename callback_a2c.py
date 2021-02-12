@@ -127,17 +127,13 @@ class CustomCallbackA(BaseCallback):
         # make a dictionary for the items above ^
         env_info = OrderedDict()
         for env_num in range(self.num_envs):
-            env_info = { env_num: {
-                'total_life_' + str(env_num) : 1,
-                'total_game_' + str(env_num) : 1,
-                'steps_life_' + str(env_num) : 1,
-                'steps_game_' + str(env_num) : 1,
-                'prev_life_' + str(env_num) : 3,
-                'life_reward_' + str(env_num) : 0,
-                'game_reward ' + str(env_num) : 0,
-                'total_reward_' + str(env_num) : 0
-                }
-            }
+            env_info[env_num] = {}
+            env_info[env_num]['total_life'] = env_info[env_num]['total_game'] = \
+                env_info[env_num]['steps_life'] = env_info[env_num]['steps_game'] = 1
+            env_info[env_num]['prev_life'] = 3
+            env_info[env_num]['life_reward'] = env_info[env_num]['game_reward'] = \
+                env_info[env_num]['total_reward'] = 0
+
         # TODO: move this check elsewhere
         if(self.isLives):
             # TODO: rewrite as a loop
@@ -146,35 +142,42 @@ class CustomCallbackA(BaseCallback):
                     is_end_of_game = False
                     # end of game
                     if(value['lives_env_' + str(i)] == 0):
-                        CustomCallback.main_data_dict[key]['game_reward_env_'+str(i)] = env_info[i]['game_reward_'+str(i)]
+                        CustomCallbackA.main_data_dict[key]['game_reward_env_'+str(i)] = env_info[i]['game_reward']
                         # reset_life
-                        env_info[i]['total_game_'+str(i)] += 1
-                        env_info[i]['steps_life_'+str(i)] = 1
-                        env_info[i]['steps_game_'+str(i)] = 1
-                        env_info[i]['life_reward_'+str(i)] = 0
-                        env_info[i]['game_reward_'+str(i)] = 0
+                        env_info[i]['total_game'] += 1
+                        env_info[i]['steps_life'] = 0
+                        env_info[i]['steps_game'] = 0
+                        env_info[i]['life_reward'] = 0
+                        env_info[i]['game_reward'] = 0
                         is_end_of_game = True
+
+                   
+
+                    env_info[i]['total_reward'] += value['step_reward_env_'+str(i)]
+                    env_info[i]['life_reward']  += value['step_reward_env_'+str(i)]  
+                    env_info[i]['game_reward']  += value['step_reward_env_'+str(i)] 
+                    env_info[i]['prev_life'] = value['lives_env_'+str(i)]
+
+                    # update info in main dict
+                    CustomCallbackA.main_data_dict[key]['steps_life_env_'+str(i)] = env_info[i]['steps_life'] 
+                    CustomCallbackA.main_data_dict[key]['steps_game_env_'+str(i)] = env_info[i]['steps_game']
+                    CustomCallbackA.main_data_dict[key]['total_game_env_'+str(i)] = env_info[i]['total_game']
+                    CustomCallbackA.main_data_dict[key]['life_reward_env_'+str(i)] = env_info[i]['life_reward']
+                    CustomCallbackA.main_data_dict[key]['total_reward_env_'+str(i)] = env_info[i]['total_reward']
+                    CustomCallbackA.main_data_dict[key]['is_end_of_game_env_'+str(i)] = is_end_of_game
 
                     # lost a life (episode)
                     # record BEFORE lives is decremented
-                    elif(key != self.num_steps and value['lives_env_'+str(i)] != CustomCallbackA.main_data_dict[key+self.num_envs]['lives_env_'+str(i)]):
-                        CustomCallbackA.main_data_dict[key]['total_life_env_'+str(i)] = env_info[i]['total_life_'+str(i)]
-                        CustomCallback.main_data_dict[key]['life_reward_env_'+str(i)] = env_info[i]['life_reward_'+str(i)]
-                        env_info[i]['total_life_'+str(i)]  += 1
-                        env_info[i]['steps_life_'+str(i)] = 1
-                        env_info[i]['life_reward_'+str(i)] = 0
+                    if(key != self.num_steps and value['lives_env_'+str(i)] != CustomCallbackA.main_data_dict[key+self.num_envs]['lives_env_'+str(i)]
+                        and CustomCallbackA.main_data_dict[key+self.num_envs]['lives_env_'+str(i)] != 0):
+                        CustomCallbackA.main_data_dict[key]['total_life_env_'+str(i)] = env_info[i]['total_life']
+                        
+                        env_info[i]['total_life']  += 1
+                        env_info[i]['steps_life'] = 0
+                        env_info[i]['life_reward'] = 0
 
-                    env_info[i]['total_reward_'+str(i)] += value['step_reward_env_'+str(i)] 
-                    env_info[i]['prev_life_'+str(i)] = value['lives_env_'+str(i)]
-
-                    # update info in main dict
-                    CustomCallbackA.main_data_dict[key]['steps_life_env_'+str(i)] = env_info[i]['steps_life_'+str(i)] 
-                    CustomCallbackA.main_data_dict[key]['steps_game_env_'+str(i)] = env_info[i]['steps_game_'+str(i)]
-                    CustomCallbackA.main_data_dict[key]['total_game_env_'+str(i)] = env_info[i]['total_game_'+str(i)]
-                    CustomCallbackA.main_data_dict[key]['total_reward_env_'+str(i)] = env_info[i]['total_reward_'+str(i)]
-                    CustomCallbackA.main_data_dict[key]['is_end_of_game_env_'+str(i)] = is_end_of_game
-                    env_info[i]['steps_life_'+str(i)] += 1
-                    env_info[i]['steps_game_'+str(i)] += 1
+                    env_info[i]['steps_life'] += 1
+                    env_info[i]['steps_game'] += 1
 
     def _on_step(self) -> bool:
         """

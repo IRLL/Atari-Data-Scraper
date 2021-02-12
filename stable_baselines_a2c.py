@@ -29,9 +29,9 @@ args = parser.parse_args()
 isLives = args.lives
 
 # set num timesteps (per environment)
-num_steps = 10
+num_steps = 2000
 # set num envs
-num_envs = 5
+num_envs = 2
 
 num_steps = num_steps * num_envs
 
