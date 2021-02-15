@@ -214,7 +214,7 @@ class CustomCallbackA(BaseCallback):
         # add step to dict
         CustomCallbackA.main_data_dict.update(step_stats)
         key = self.num_timesteps
-        # TODO: move back the action + step + lives stuff out of here, and move the rest to utils? 
+        # TODO: move back the action + step + lives stuff above, and move the rest to utils? 
         for i in range(self.num_envs):
             CustomCallbackA.main_data_dict[key]['action_env_'+str(i)] =  self.locals['actions'][i]
             CustomCallbackA.main_data_dict[key]['action_name_env_'+str(i)] =  self.actions[self.locals['actions'][i]]
@@ -281,7 +281,7 @@ class CustomCallbackA(BaseCallback):
             # print("reading parquet file")
             # print(pd.read_parquet(os.path.join(self.directory,  "df.parquet")))
 
-        #     # calculate new info
+            # calculate new info
             self.util()
             self.make_dataframes(self.df_list_mod)
             self.df_to_csv("df_mod.csv", self.df_list_mod)
