@@ -25,13 +25,15 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 # TODO: make flags for num steps and num envs
 parser = argparse.ArgumentParser()
 parser.add_argument('--lives', help='env has lives', action='store_true', default=False)
+parser.add_argument('--num_envs', help='set the number of environments', type=int, default=4)
+parser.add_argument('--num_steps', help='set the number of environments', type=int, default=1000)
 args = parser.parse_args()
 isLives = args.lives
 
 # set num timesteps (per environment)
-num_steps = 20
+num_steps = args.num_steps
 # set num envs
-num_envs = 2
+num_envs = args.num_envs
 
 num_steps = num_steps * num_envs
 
