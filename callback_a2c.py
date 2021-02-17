@@ -32,6 +32,7 @@ class CustomCallbackA(BaseCallback):
     isLives = False
     num_envs = 4
     og_env = make_atari('MsPacmanNoFrameskip-v4')
+    # (0, actions, env,  num_steps, dir, isLives, make_atari('MsPacmanNoFrameskip-v4'), num_envs)
     def __init__(self, verbose=0, env_actions=[], env=None, num_steps=10, dir='results/', isLives=False, og_env = "", num_envs = 4):
         super(CustomCallbackA, self).__init__(verbose)
         self.actions = env_actions
@@ -41,7 +42,8 @@ class CustomCallbackA(BaseCallback):
         self.isLives = isLives
         self.og_env = og_env.unwrapped
         self.num_envs = num_envs
-        print("num stepss", self.num_timesteps)
+        print("num stepss", self.num_steps)
+        print("num timetepss", self.num_timesteps)
         print("game has lives? ", self.isLives)
         # env <MaxAndSkipEnv<NoopResetEnv<TimeLimit<AtariEnv<MsPacmanNoFrameskip-v4>>>>>
         print("dir ", self.directory)
@@ -269,7 +271,8 @@ class CustomCallbackA(BaseCallback):
                 if(CustomCallbackA.step >= 2):
                     CustomCallbackA.main_data_dict[key]['lives_env_'+str(i)] = self.locals['infos'][i]['ale.lives']
         
-      
+        # print("numsteps" , self.num_steps)
+        # print("numenvs" , self.num_envs)
         if(CustomCallbackA.step == (self.num_steps/self.num_envs)):
             self.make_dataframes(self.df_list)
             self.df_to_csv("df_og.csv", self.df_list)
