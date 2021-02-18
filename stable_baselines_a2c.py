@@ -49,7 +49,7 @@ os.makedirs(dir)
 subfolder = os.path.join(dir, 'screen')
 os.makedirs(subfolder)
 
-
+print("algo ", algo)
 if(algo == "A2C" or algo == "PPO2"):
     num_steps = num_steps * num_envs
     if(algo == "A2C"):
@@ -61,7 +61,7 @@ if(algo == "A2C" or algo == "PPO2"):
         env = VecFrameStack(env, n_stack=4)
 
         # define callback object
-        step_callback = CustomCallbackA(0, actions, env,  num_steps, dir, isLives, make_atari('MsPacmanNoFrameskip-v4'), num_envs)
+        step_callback = CustomCallbackA(0, actions, env,  num_steps, dir, isLives, make_atari('MsPacmanNoFrameskip-v4'), num_envs, "A2C")
         
         # TODO: make option to save new model or use pretrained model
         model = A2C('CnnPolicy', env, verbose=1, n_steps=5)
@@ -69,18 +69,29 @@ if(algo == "A2C" or algo == "PPO2"):
         if isSave:
             model.save("A2C_model_" + tmp_name)
 
-    if(algo == "PPO2"):
+    elif(algo == "PPO2"):
         actions = make_atari('MsPacmanNoFrameskip-v4').unwrapped.get_action_meanings()
         env = make_atari_env('MsPacmanNoFrameskip-v4', num_env=num_envs, seed=0, wrapper_kwargs={'clip_rewards':False})
         # Stack 4 frames
         env = VecFrameStack(env, n_stack=4)
-        step_callback = CustomCallbackA(0, actions, env,  num_steps, dir, isLives, make_atari('MsPacmanNoFrameskip-v4'), num_envs)
+        step_callback = CustomCallbackA(0, actions, env,  num_steps, dir, isLives, make_atari('MsPacmanNoFrameskip-v4'), num_envs, "PPO2")
         n_steps = 5
         model = PPO2('CnnPolicy', env, verbose=1,n_steps = n_steps, nminibatches = n_steps*num_envs)
         
         model.learn(total_timesteps=num_steps, callback=step_callback)
         if isSave:
             model.save("PPO2_model_" + tmp_name)
+
+elif(algo == "DQN"):
+    print("dqn")
+    env = make_atari('MsPacmanNoFrameskip-v4')
+    step_callback = CustomCallbackA(0,env.unwrapped.get_action_meanings(), env,  num_steps, dir, isLives, env, 1, "DQN")
+    model = DQN(CnnPolicy, env, verbose=1)
+    model.learn(total_timesteps=num_steps, callback = step_callback)
+    if isSave:
+        model.save("DQN_model_" + tmp_name)
+else:
+    print("other")
 # n_updates = total_timesteps // self.n_batch
 # self.n_batch = self.n_envs * self.n_steps
 
