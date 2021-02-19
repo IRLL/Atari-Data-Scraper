@@ -226,6 +226,7 @@ class CustomCallbackA(BaseCallback):
 
                     env_info[i]['steps_life'] += 1
                     env_info[i]['steps_game'] += 1
+
     def find_life_game_info_dqn(self):
         total_life = total_game = steps_life = steps_game = 1
         prev_life = 3
@@ -244,9 +245,10 @@ class CustomCallbackA(BaseCallback):
                         CustomCallbackA.main_data_dict[key-1]['cumulative_episode_reward']
                 
             episode_reward += CustomCallbackA.main_data_dict[key]['step_reward'] 
-
+            total_reward += CustomCallbackA.main_data_dict[key]['step_reward'] 
             if(self.isLives):
                 # game over (epoch)
+                CustomCallbackA.main_data_dict[key]['steps_life'] = steps_life
                 if(value['lives'] == 0):
                     CustomCallbackA.main_data_dict[key]['game_reward'] = game_reward
                     # reset values
@@ -255,27 +257,27 @@ class CustomCallbackA(BaseCallback):
                     steps_game = steps_life = 0
                     game_reward = 0
                     episode_reward = 0
-
-                elif(key != self.num_steps and value['lives'] != CustomCallbackA.main_data_dict[key+1]['lives']):
-                    # not sure if this is correct
-                    CustomCallbackA.main_data_dict[key]['total_life'] = total_life
-                    CustomCallbackA.main_data_dict[key]['episode_reward'] = episode_reward
-                    game_reward += episode_reward
-                    total_reward += episode_reward
-                    total_life += 1
-                    # steps_game += steps_life
-                    steps_life = 1
-                    episode_reward = 0
-
-                # normal step
-                prev_life = value['lives']
-                CustomCallbackA.main_data_dict[key]['steps_life'] = steps_life
-                
                 CustomCallbackA.main_data_dict[key]['steps_game'] = steps_game
                 CustomCallbackA.main_data_dict[key]['total_game'] = total_game
 
                 CustomCallbackA.main_data_dict[key]['total_reward'] = total_reward
 
+                if(key != self.num_steps and value['lives'] != CustomCallbackA.main_data_dict[key+1]['lives']
+                    and value['lives'] != 0):
+
+                    # not sure if this is correct
+                    CustomCallbackA.main_data_dict[key]['total_life'] = total_life
+                    CustomCallbackA.main_data_dict[key]['episode_reward'] = episode_reward
+                    game_reward += episode_reward
+                    # total_reward += episode_reward
+                    total_life += 1
+                    # steps_game += steps_life
+                    steps_life = 0
+                    episode_reward = 0
+
+                # normal step
+                prev_life = value['lives']
+            
                 steps_life += 1
                 steps_game += 1
 
