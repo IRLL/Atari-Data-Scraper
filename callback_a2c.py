@@ -1,3 +1,4 @@
+# TODO: order alphabetically
 from stable_baselines.common.callbacks import BaseCallback
 from stable_baselines.common.evaluation import evaluate_policy
 import matplotlib.pyplot as plt
@@ -30,12 +31,12 @@ class CustomCallbackA(BaseCallback):
     df_list_mod = []
     num_steps = 10
     isLives = False
-    num_envs = 4
+    num_envs = 1
     algo = "DQN"
     game = "Pacman"
     og_env = make_atari('MsPacmanNoFrameskip-v4')
     # (0, actions, env,  num_steps, dir, isLives, make_atari('MsPacmanNoFrameskip-v4'), num_envs)
-    def __init__(self, verbose=0, env_actions=[], env=None, num_steps=10, dir='results/', isLives=False, og_env = "", num_envs = 4, algo = "DQN", game = "Pacman"):
+    def __init__(self, verbose=0, env_actions=[], env=None, num_steps=10, dir='results/', isLives=False, og_env = "", num_envs = 1, algo = "DQN", game = "Pacman"):
         super(CustomCallbackA, self).__init__(verbose)
         self.actions = env_actions
         self.env = env
@@ -155,9 +156,6 @@ class CustomCallbackA(BaseCallback):
                 # find blue ghosts, if any
                 if(hasBlueGhost):
                     imagePeeler = GhostTracker()
-                    # print("About to seek pacman at ", CustomCallbackA.step)
-                    # ghost_coords = imagePeeler.wheresPacman(obs)
-                    # ghost_coords = imagePeeler.wheresPacman(self.locals['obs'])
                     ghost_coords = imagePeeler.wheresPacman(cv.imread(filepath))
                     if(ghost_coords[0] != -1):
                         CustomCallbackA.main_data_dict[key]['dark_blue_ghost1_coord_x_env_'+ str(i)] = ghost_coords[0]
@@ -182,15 +180,14 @@ class CustomCallbackA(BaseCallback):
             env_info[env_num]['life_reward'] = env_info[env_num]['game_reward'] = \
                 env_info[env_num]['total_reward'] = 0
 
-        # TODO: move this check elsewhere
+        # TODO: move this check elsewhere?
         if(self.isLives):
-            # TODO: rewrite as a loop
             for key, value in CustomCallbackA.main_data_dict.items():  
                 for i in range(self.num_envs):
                     is_end_of_game = False
 
                     CustomCallbackA.main_data_dict[key]['total_game_env_'+str(i)] = env_info[i]['total_game']
-                    
+            
                     # end of game
                     if(value['lives_env_' + str(i)] == 0):
                         CustomCallbackA.main_data_dict[key]['game_reward_env_'+str(i)] = env_info[i]['game_reward']
@@ -215,7 +212,6 @@ class CustomCallbackA(BaseCallback):
                     CustomCallbackA.main_data_dict[key]['total_reward_env_'+str(i)] = env_info[i]['total_reward']
                     CustomCallbackA.main_data_dict[key]['is_end_of_game_env_'+str(i)] = is_end_of_game
 
-    
                     # lost a life (episode)
                     # record BEFORE lives is decremented
                     if(key != self.num_steps and value['lives_env_'+str(i)] != CustomCallbackA.main_data_dict[key+self.num_envs]['lives_env_'+str(i)]
@@ -255,7 +251,6 @@ class CustomCallbackA(BaseCallback):
                     CustomCallbackA.main_data_dict[key]['game_reward'] = game_reward
                     # reset values
                     total_game += 1
-                    # total_life += 1
                     steps_game = steps_life = 0
                     game_reward = 0
                     episode_reward = 0
@@ -271,15 +266,11 @@ class CustomCallbackA(BaseCallback):
                     CustomCallbackA.main_data_dict[key]['total_life'] = total_life
                     CustomCallbackA.main_data_dict[key]['episode_reward'] = episode_reward
                     game_reward += episode_reward
-                    # total_reward += episode_reward
                     total_life += 1
-                    # steps_game += steps_life
                     steps_life = 0
                     episode_reward = 0
-
                 # normal step
                 prev_life = value['lives']
-            
                 steps_life += 1
                 steps_game += 1
 
@@ -310,8 +301,8 @@ class CustomCallbackA(BaseCallback):
         
         # what timestep you think
         print("timestep ",CustomCallbackA.step)
-        # what timestep a2c learn is on 
-        print("a2c num timestep",self.num_timesteps)
+        # what timestep a2c or ppo2 learn() is on 
+        print("a2c/ppo2 num timestep",self.num_timesteps)
        
         # TODO: add flag to save screenshots or not
         subfolder = os.path.join(self.directory, 'screen/')
@@ -321,11 +312,8 @@ class CustomCallbackA(BaseCallback):
         if(self.algo == "A2C" or self.algo == "PPO2"):
             # self.locals['obs'] gives black and white imgs
             obs = self.env.get_images()
-            
             for i in range(self.num_envs):
-                # TODO: make cleaner
                 mpl.image.imsave(subfolder+"env_" + str(i) + img_name + "_.png", obs[i])
-
         elif (self.algo == "DQN"):
             self.env.ale.saveScreenPNG(subfolder+"env_" + str(0) + img_name + "_.png")
 
@@ -338,7 +326,8 @@ class CustomCallbackA(BaseCallback):
         # add step to dict
         CustomCallbackA.main_data_dict.update(step_stats)
         key = self.num_timesteps
-        # TODO: move back the action + step + lives stuff above, and move the rest to utils? 
+
+        # collection of minimum data: action, reward, lives
         if(self.algo == "DQN"):
             CustomCallbackA.main_data_dict[key]['action_env_0'] =  self.locals['action']
             CustomCallbackA.main_data_dict[key]['action_name_env_0'] =  self.actions[self.locals['env_action']]
@@ -355,13 +344,15 @@ class CustomCallbackA(BaseCallback):
                         CustomCallbackA.main_data_dict[key]['lives_env_'+str(i)] = 3
                     if(CustomCallbackA.step >= 2):
                         CustomCallbackA.main_data_dict[key]['lives_env_'+str(i)] = self.locals['infos'][i]['ale.lives']
-        print("val ", self.num_steps/self.num_envs)
+        
+        # at the last step, write data into csv files
         if(CustomCallbackA.step == (self.num_steps/self.num_envs)):
             self.make_dataframes(self.df_list)
+            # save minimal data
             self.df_to_csv("df_og.csv", self.df_list)
             self.df_to_parquet()
             
-            # calculate new info
+            # retrieve additional information like item locations, extra reward and life information
             if(self.game == "Pacman"):
                 self.find_item_locations_pacman()
                 if(self.algo == "DQN"):
@@ -371,10 +362,9 @@ class CustomCallbackA(BaseCallback):
             elif(self.game == "Pong"):
                 self.find_item_locations_pong()
 
-    
             self.make_dataframes(self.df_list_mod)
             self.df_to_csv("df_mod.csv", self.df_list_mod)
-            print("done!")
+            print("Done!")
         
         CustomCallbackA.step = CustomCallbackA.step + 1
         return True
