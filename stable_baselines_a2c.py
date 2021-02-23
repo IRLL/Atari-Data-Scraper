@@ -19,6 +19,7 @@ from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines.common.cmd_util import make_vec_env
 import os, datetime
 import argparse
+import sys
 
 # get rid of distracting TF errors
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
@@ -69,7 +70,14 @@ os.makedirs(subfolder)
 # <ALGORITHM_NAME>_<GAME>_model_<TIMESTAMP>
 if(presaved_model != ""):
     print("model ", presaved_model)
+    parse_model_name = []
+    
     parse_model_name =  presaved_model.split("_")
+    print("hererere ", parse_model_name[0] )
+    print("here", len(parse_model_name))
+    if len(parse_model_name) < 2:
+        print("Invalid presaved model name. Please check model naming convention or directory location.")
+        sys.exit(1)
     model_algo = parse_model_name[0]
     # override algo flag param in case it is different from the presaved model
     algo = model_algo
@@ -81,39 +89,33 @@ if(presaved_model != ""):
     if(model_algo == "DQN"):
         env = make_atari(environment)
         model = DQN.load(presaved_model)
-        model.set_env(env)
-        step_callback = CustomCallbackA(0,env.unwrapped.get_action_meanings(), env,  num_steps, dir, isLives, env, 1, algo, env_name)
+        num_envs = 1
     
-    elif(model_algo == "PPO2"):
+    elif(algo == "A2C" or algo == "PPO2"):
         num_steps = num_steps * num_envs
         env = make_atari_env(environment, num_env=num_envs, seed=0, wrapper_kwargs={'clip_rewards':False})
-        #  Stack 4 frames
+        # Stack 4 frames
         env = VecFrameStack(env, n_stack=4)
-        # TODO: not sure if need to add this, means do not update them at test time
-        # env.training = False 
-        model = PPO2.load(presaved_model)
-        model.set_env(env)
         actions = make_atari(environment).unwrapped.get_action_meanings()
         step_callback = CustomCallbackA(0,actions, env,  num_steps, dir, isLives, env, num_envs, algo, env_name)
+        if(algo == "A2C"):
+            model = A2C.load(presaved_model)
 
-    elif(model_algo == "A2C"):
-        num_steps = num_steps * num_envs
-        env = make_atari_env(environment, num_env=num_envs, seed=0, wrapper_kwargs={'clip_rewards':False})
-        env = VecFrameStack(env, n_stack=4)
-        model = A2C.load(presaved_model)
-        model.set_env(env)
-        actions = make_atari(environment).unwrapped.get_action_meanings()
-        step_callback = CustomCallbackA(0,actions, env,  num_steps, dir, isLives, env, num_envs, algo, env_name)
+        elif(algo == "PPO2"):
+            model = PPO2.load(presaved_model)
     else:
-        print("Invalid presaved model name. Please check model naming convention or directory location") 
-        exit() 
+        print("Invalid presaved model name. Please check model naming convention or directory location.") 
+        sys.exit(1)
 
+    model.set_env(env)
+    # TODO: add this? do not update them at test time
+    # env.training = False
+    step_callback = CustomCallbackA(0,actions, env,  num_steps, dir, isLives, env, num_envs, algo, env_name)
     model.learn(total_timesteps=num_steps, callback = step_callback)
     if isSave:
         model.save(model_algo + "_" + env_name + "_model_" + tmp_name)
 
 elif(algo == "A2C" or algo == "PPO2"):
-    print("A2C and PPO2")
     num_steps = num_steps * num_envs
     env = make_atari_env(environment, num_env=num_envs, seed=0, wrapper_kwargs={'clip_rewards':False})
     # Stack 4 frames
@@ -134,7 +136,6 @@ elif(algo == "A2C" or algo == "PPO2"):
         model.save(algo + "_" + env_name + "_model_" + tmp_name)
 
 elif(algo == "DQN"):
-    print("DQN")
     env = make_atari(environment)
     step_callback = CustomCallbackA(0,env.unwrapped.get_action_meanings(), env,  num_steps, dir, isLives, env, 1, "DQN", env_name)
     model = DQN(CnnPolicy, env, verbose=1)
