@@ -32,9 +32,10 @@ class CustomCallbackA(BaseCallback):
     isLives = False
     num_envs = 4
     algo = "DQN"
+    game = "Pacman"
     og_env = make_atari('MsPacmanNoFrameskip-v4')
     # (0, actions, env,  num_steps, dir, isLives, make_atari('MsPacmanNoFrameskip-v4'), num_envs)
-    def __init__(self, verbose=0, env_actions=[], env=None, num_steps=10, dir='results/', isLives=False, og_env = "", num_envs = 4, algo = "DQN"):
+    def __init__(self, verbose=0, env_actions=[], env=None, num_steps=10, dir='results/', isLives=False, og_env = "", num_envs = 4, algo = "DQN", game = "Pacman"):
         super(CustomCallbackA, self).__init__(verbose)
         self.actions = env_actions
         self.env = env
@@ -44,6 +45,7 @@ class CustomCallbackA(BaseCallback):
         self.og_env = og_env.unwrapped
         self.num_envs = num_envs
         self.algo = algo
+        self.game = game
         print("num stepss", self.num_steps)
         print("num timetepss", self.num_timesteps)
         print("game has lives? ", self.isLives)
@@ -117,7 +119,7 @@ class CustomCallbackA(BaseCallback):
             observation = observations[i]
             self.save_frame(observation, self.save_file_screen, index)
 
-    def find_item_locations(self):
+    def find_item_locations_pacman(self):
         subfolder = os.path.join(self.directory, 'screen/')
         for screen_num in range(self.num_envs, self.num_timesteps + self.num_envs , self.num_envs):
             for i in range(self.num_envs):
@@ -281,6 +283,21 @@ class CustomCallbackA(BaseCallback):
                 steps_life += 1
                 steps_game += 1
 
+    def find_item_locations_pong(self):
+        subfolder = os.path.join(self.directory, 'screen/')
+        for screen_num in range(self.num_envs, self.num_timesteps + self.num_envs , self.num_envs):
+            for i in range(self.num_envs):
+                filepath = subfolder + "env_" + str(i) + "_screenshot_" + str(screen_num) + "_.png"
+                key = screen_num
+                ball_coord, green_paddle_coord, brown_paddle_coord, distance = cd.find_pong_coords(filepath)
+                CustomCallbackA.main_data_dict[key]['ball_coord_x_env_'+ str(i)] = ball_coord[0]
+                CustomCallbackA.main_data_dict[key]['ball_coord_y_env_'+ str(i)] = ball_coord[1]
+                CustomCallbackA.main_data_dict[key]['green_paddle_coord_x_env_'+ str(i)] = green_paddle_coord[0]
+                CustomCallbackA.main_data_dict[key]['green_paddle_coord_y_env_'+ str(i)] = green_paddle_coord[1]
+                CustomCallbackA.main_data_dict[key]['brown_paddle_coord_x_env_'+ str(i)] = brown_paddle_coord[0]
+                CustomCallbackA.main_data_dict[key]['brown_paddle_coord_y_env_'+ str(i)] = brown_paddle_coord[1]
+                CustomCallbackA.main_data_dict[key]['paddle_ball_distance_env_'+ str(i)] = distance
+
     def _on_step(self) -> bool:
         """
         This method will be called by the model after each call to `env.step()`.
@@ -338,18 +355,23 @@ class CustomCallbackA(BaseCallback):
                         CustomCallbackA.main_data_dict[key]['lives_env_'+str(i)] = 3
                     if(CustomCallbackA.step >= 2):
                         CustomCallbackA.main_data_dict[key]['lives_env_'+str(i)] = self.locals['infos'][i]['ale.lives']
-
+        print("val ", self.num_steps/self.num_envs)
         if(CustomCallbackA.step == (self.num_steps/self.num_envs)):
             self.make_dataframes(self.df_list)
             self.df_to_csv("df_og.csv", self.df_list)
             self.df_to_parquet()
             
             # calculate new info
-            self.find_item_locations()
-            if(self.algo == "DQN"):
-                self.find_life_game_info_dqn()
-            else:
-                self.find_life_game_info()
+            if(self.game == "Pacman"):
+                self.find_item_locations_pacman()
+                if(self.algo == "DQN"):
+                    self.find_life_game_info_dqn()
+                else:
+                    self.find_life_game_info()
+            elif(self.game == "Pong"):
+                self.find_item_locations_pong()
+
+    
             self.make_dataframes(self.df_list_mod)
             self.df_to_csv("df_mod.csv", self.df_list_mod)
             print("done!")
