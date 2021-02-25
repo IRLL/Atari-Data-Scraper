@@ -9,6 +9,15 @@ main_data_dict = OrderedDict()
 # csv_input.to_csv('A2C_test/mod_output.csv', index=False)
 # dataframe is a db table
 
+directory = "A2C_test"
+num_envs = 2
+num_timesteps = 20
+df_list = []
+csv_input = pd.read_csv(directory + '/df_og.csv')
+dict_orig = csv_input.to_dict()
+# print("value content ", dict_orig["lives_env_0"][0])
+# print("value ", value)
+
 def make_dataframes(df):
     # Make the main Dataframe
     main_df = pd.DataFrame.from_dict(
@@ -34,14 +43,75 @@ def df_to_csv(filename, df_list):
         else:
             df.to_csv(filepath, mode='a', index=False)
 
+def find_life_game_info():
+        env_info = OrderedDict()
+        for env_num in range(num_envs):
+            env_info[env_num] = {}
+            env_info[env_num]['total_life'] = env_info[env_num]['total_game'] = \
+                env_info[env_num]['steps_life'] = env_info[env_num]['steps_game'] = 1
+            env_info[env_num]['prev_life'] = 3
+            env_info[env_num]['life_reward'] = env_info[env_num]['game_reward'] = \
+                env_info[env_num]['total_reward'] = 0
+
+        # TODO: move this check elsewhere?
+        if(True):
+            #for key, value in dict_orig.items():
+            for i in range(num_envs):
+                for key in range (len(dict_orig)):  
+                    print("env ", i, "step ", key)
+                
+                    is_end_of_game = False
+
+                    main_data_dict[key]['total_game_env_'+str(i)] = env_info[i]['total_game']
+            
+                    # end of game
+                    if(dict_orig['lives_env_' + str(i)][key]== 0):
+                        main_data_dict[key]['game_reward_env_'+str(i)] = env_info[i]['game_reward']
+                        # reset_life
+                        env_info[i]['total_game'] += 1
+                        env_info[i]['steps_life'] = 0
+                        env_info[i]['steps_game'] = 0
+                        env_info[i]['life_reward'] = 0
+                        env_info[i]['game_reward'] = 0
+                        is_end_of_game = True
+
+                    env_info[i]['total_reward'] += dict_orig['step_reward_env_'+str(i)][key]
+                    env_info[i]['life_reward']  += dict_orig['step_reward_env_'+str(i)][key]
+                    env_info[i]['game_reward']  += dict_orig['step_reward_env_'+str(i)][key]
+                    env_info[i]['prev_life'] = dict_orig['lives_env_'+str(i)][key]
+
+                    # update info in main dict
+                    main_data_dict[key]['steps_life_env_'+str(i)] = env_info[i]['steps_life'] 
+                    main_data_dict[key]['steps_game_env_'+str(i)] = env_info[i]['steps_game']
+                    # CustomCallbackA.main_data_dict[key]['total_game_env_'+str(i)] = env_info[i]['total_game']
+                    main_data_dict[key]['life_reward_env_'+str(i)] = env_info[i]['life_reward']
+                    main_data_dict[key]['total_reward_env_'+str(i)] = env_info[i]['total_reward']
+                    main_data_dict[key]['is_end_of_game_env_'+str(i)] = is_end_of_game
+
+                    # lost a life (episode)
+                    # record BEFORE lives is decremented
+                    if(key != len(dict_orig)-1 and dict_orig['lives_env_'+str(i)][key] != dict_orig['lives_env_'+str(i)][key+1]
+                        and dict_orig['lives_env_'+str(i)][key+1] != 0):
+                        main_data_dict[key]['total_life_env_'+str(i)] = env_info[i]['total_life']
+                        
+                        env_info[i]['total_life']  += 1
+                        env_info[i]['steps_life'] = 0
+                        env_info[i]['life_reward'] = 0
+
+                    env_info[i]['steps_life'] += 1
+                    env_info[i]['steps_game'] += 1
+
 def find_item_locations_pacman():
         # subfolder = os.path.join(directory, 'screen/')
+        # TODO: change for loop
+        key = 0
         for screen_num in range(num_envs, num_timesteps + num_envs , num_envs):
-            key = screen_num
+            # key = (screen_num / num_envs) - 1
+            # print("new ind ", key)
+            
             main_data_dict[key] = {}
             for i in range(num_envs):
                 filepath = directory + "/screen/env_" + str(i) + "_screenshot_" + str(screen_num) + "_.png"
-                print("filepath ", filepath)
                 
                 pacman_coord, pink_ghost_coord, red_ghost_coord, green_ghost_coord, orange_ghost_coord, to_pink_ghost, to_red_ghost, to_green_ghost, to_orange_ghost, pill_eaten, pill_dist, hasBlueGhost = cd.find_all_coords(
                     filepath)
@@ -86,29 +156,31 @@ def find_item_locations_pacman():
                         main_data_dict[key]['dark_blue_ghost4_coord_x_env_'+ str(i)] = ghost_coords[6]
                         main_data_dict[key]['dark_blue_ghost4_coord_y_env_'+ str(i)] = ghost_coords[7]
             # print("orddict ", main_data_dict[key])
+            key += 1
 
-directory = "A2C_test"
-num_envs = 2
-num_timesteps = 20
-df_list = []
-csv_input = pd.read_csv(directory + '/df_og.csv')
+
+# csv_input = pd.read_csv(directory + '/df_og.csv')
+# value = csv_input.to_dict()
+# print("value content ", value["lives_env_0"][0])
+# print("value ", value)
 # print("csv ", type(csv_input))
 # print("col ", csv_input['step_reward_env_0'])
 find_item_locations_pacman()
+find_life_game_info()
 val = make_dataframes(df_list)
-#print("main", main_data_dict)
+print("dataframe result ", val)
 # print("df list ", df_list)
 # print("df list type", type(df_list))
-print("val " ,val)
+# print("val of dataframes" ,val)
 # print("val " , type(val))
 for v in val:
-    print("v ", v)
-    #csv_input[v] = val[v]
-print("pacman coord x env 0", val["pacman_coord_x_env_0"])
-    # csv_input[v] = df_list[v]
-print("here ", df_list['pacman_coord_x_env_0'])
+    # print("v ", v)
+    csv_input[v] = val[v]
+# print("pacman coord x env 0", val["pacman_coord_x_env_0"])
+# csv_input["test col"] = val["pacman_coord_x_env_0"]
+# print("here ", df_list['pacman_coord_x_env_0'])
 # numpy_data = np.array([1,2,3,4,5,6,7,8,9,10])
 # df = pd.DataFrame(data=numpy_data, columns=["column1"])
 # csv_input['New_col'] = df["column1"]
-#csv_input.to_csv('A2C_test/mod_output_with_coords.csv', index=False)
+csv_input.to_csv('A2C_test/compare_to_mod.csv', index=False)
 # dataframe is a db table
