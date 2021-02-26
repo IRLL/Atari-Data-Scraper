@@ -9,9 +9,12 @@ main_data_dict = OrderedDict()
 # csv_input.to_csv('A2C_test/mod_output.csv', index=False)
 # dataframe is a db table
 
-directory = "A2C_test"
-num_envs = 2
-num_timesteps = 20
+# directory = "A2C_test"
+directory = "DQN_test"
+# num_envs = 2
+# num_timesteps = 20
+num_envs = 1
+num_timesteps = 10
 df_list = []
 csv_input = pd.read_csv(directory + '/df_og.csv')
 dict_orig = csv_input.to_dict()
@@ -112,7 +115,7 @@ def find_item_locations_pacman():
             main_data_dict[key] = {}
             for i in range(num_envs):
                 filepath = directory + "/screen/env_" + str(i) + "_screenshot_" + str(screen_num) + "_.png"
-                
+                print("filepath ", filepath)
                 pacman_coord, pink_ghost_coord, red_ghost_coord, green_ghost_coord, orange_ghost_coord, to_pink_ghost, to_red_ghost, to_green_ghost, to_orange_ghost, pill_eaten, pill_dist, hasBlueGhost = cd.find_all_coords(
                     filepath)
                 main_data_dict[key]['pacman_coord_x_env_'+ str(i)] = pacman_coord[0]
@@ -158,6 +161,58 @@ def find_item_locations_pacman():
             # print("orddict ", main_data_dict[key])
             key += 1
 
+def find_life_game_info_dqn():
+        total_life = total_game = steps_life = steps_game = 1
+        prev_life = 3
+        episode_reward = 0
+        total_reward = 0
+        game_reward = 0
+        print("in util func")
+        print("dict_orig ", dict_orig)
+        num_rows = len(dict_orig["state"])
+        print("numrows", num_rows)
+        for key in range (num_rows):
+            print("key ", key)  
+            if(key < 2):
+                main_data_dict[key]['step_reward'] = dict_orig['cumulative_episode_reward'][key]
+            else:
+                if(dict_orig['lives'][key] == 0):
+                    main_data_dict[key]['step_reward'] = 0
+                else:
+                    main_data_dict[key]['step_reward'] = dict_orig['cumulative_episode_reward'][key] - \
+                        dict_orig['cumulative_episode_reward'][key-1]
+                
+            episode_reward += main_data_dict[key]['step_reward'] 
+            total_reward += main_data_dict[key]['step_reward'] 
+            if(True):
+                # game over (epoch)
+                main_data_dict[key]['steps_life'] = steps_life
+                if(dict_orig['lives'][key] == 0):
+                    main_data_dict[key]['game_reward'] = game_reward
+                    # reset values
+                    total_game += 1
+                    steps_game = steps_life = 0
+                    game_reward = 0
+                    episode_reward = 0
+                main_data_dict[key]['steps_game'] = steps_game
+                main_data_dict[key]['total_game'] = total_game
+
+                main_data_dict[key]['total_reward'] = total_reward
+
+                if(key != num_rows-1 and dict_orig['lives'][key] != dict_orig['lives'][key+1]
+                    and dict_orig['lives'][key] != 0):
+
+                    # not sure if this is correct
+                    main_data_dict[key]['total_life'] = total_life
+                    main_data_dict[key]['episode_reward'] = episode_reward
+                    game_reward += episode_reward
+                    total_life += 1
+                    steps_life = 0
+                    episode_reward = 0
+                # normal step
+                prev_life = dict_orig['lives'][key]
+                steps_life += 1
+                steps_game += 1
 
 # csv_input = pd.read_csv(directory + '/df_og.csv')
 # value = csv_input.to_dict()
@@ -166,7 +221,8 @@ def find_item_locations_pacman():
 # print("csv ", type(csv_input))
 # print("col ", csv_input['step_reward_env_0'])
 find_item_locations_pacman()
-find_life_game_info()
+# find_life_game_info()
+find_life_game_info_dqn()
 val = make_dataframes(df_list)
 print("dataframe result ", val)
 # print("df list ", df_list)
@@ -182,5 +238,6 @@ for v in val:
 # numpy_data = np.array([1,2,3,4,5,6,7,8,9,10])
 # df = pd.DataFrame(data=numpy_data, columns=["column1"])
 # csv_input['New_col'] = df["column1"]
-csv_input.to_csv('A2C_test/compare_to_mod.csv', index=False)
+# csv_input.to_csv('A2C_test/compare_to_mod.csv', index=False)
+csv_input.to_csv(directory + "/compare_to_mod.csv", index=False)
 # dataframe is a db table
