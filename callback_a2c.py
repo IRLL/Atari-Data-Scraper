@@ -274,6 +274,29 @@ class CustomCallbackA(BaseCallback):
                 steps_life += 1
                 steps_game += 1
 
+    def find_life_game_info_a2c_ppo2_pong(self):
+        # [key]['step_reward_env_'+str(i)] 
+        env_info = OrderedDict()
+        for env_num in range(self.num_envs):
+            env_info[env_num] = {}
+            env_info[env_num]['negative_score_env_'+ str(env_num)] = 0
+            env_info[env_num]['positive_score_env_'+ str(env_num)] = 0
+            env_info[env_num]['display_score_env_'+ str(env_num)] = 0
+        for env_num in range(self.num_envs):
+            for key, value in CustomCallbackA.main_data_dict.items():  
+                # score with respect to the agent
+                # print("score of agent ", value['step_reward_env_'+str(i)])
+                reward_wrt_agent = value['step_reward_env_'+str(env_num)]
+                if reward_wrt_agent < 0:
+                    env_info[env_num]['negative_score_env_'+ str(env_num)] += 1
+                elif reward_wrt_agent > 0:
+                    env_info[env_num]['positive_score_env_'+ str(env_num)] += 1
+                env_info[env_num]['display_score_env_'+ str(env_num)] += reward_wrt_agent
+                if abs(env_info[env_num]['positive_score_env_'+ str(env_num)] - env_info[env_num]['negative_score_env_'+ str(env_num)]) >= 20:
+                    env_info[env_num]['negative_score_env_'+ str(env_num)] = env_info[env_num]['positive_score_env_'+ str(env_num)] = \
+                        env_info[env_num]['display_score_env_'+ str(env_num)] = 0
+                CustomCallbackA.main_data_dict[key]['curr_score_env_'+ str(env_num)] = env_info[env_num]['display_score_env_'+ str(env_num)]
+                # print("i ", key, " score ", reward_wrt_agent, " display ", env_info[env_num]['display_score_env_'+ str(env_num)], " pos ", env_info[env_num]['positive_score_env_'+ str(env_num)] , " neg ",  env_info[env_num]['negative_score_env_'+ str(env_num)])
     def find_item_locations_pong(self):
         subfolder = os.path.join(self.directory, 'screen/')
         for screen_num in range(self.num_envs, self.num_timesteps + self.num_envs , self.num_envs):
@@ -298,7 +321,7 @@ class CustomCallbackA(BaseCallback):
 
         :return: (bool) If the callback returns False, training is aborted early.
         """
-        
+        # print("locals ", self.locals)
         # what timestep you think
         print("timestep ",CustomCallbackA.step)
         # what timestep a2c or ppo2 learn() is on 
@@ -331,20 +354,28 @@ class CustomCallbackA(BaseCallback):
         if(self.algo == "DQN"):
             CustomCallbackA.main_data_dict[key]['action_env_0'] =  self.locals['action']
             CustomCallbackA.main_data_dict[key]['action_name_env_0'] =  self.actions[self.locals['env_action']]
-            CustomCallbackA.main_data_dict[key]['cumulative_episode_reward'] =  self.locals['episode_rewards'][-1]
+            if(self.game == "Pong"):
+                CustomCallbackA.main_data_dict[key]['curr_score_env_0'] = self.locals['episode_rewards'][-1]
+            else:
+                CustomCallbackA.main_data_dict[key]['cumulative_episode_reward'] =  self.locals['episode_rewards'][-1]
             if(self.isLives == True):
                 CustomCallbackA.main_data_dict[CustomCallbackA.step]['lives'] = self.locals['info']['ale.lives']
         else:
             for i in range(self.num_envs):
                 CustomCallbackA.main_data_dict[key]['action_env_'+str(i)] =  self.locals['actions'][i]
                 CustomCallbackA.main_data_dict[key]['action_name_env_'+str(i)] =  self.actions[self.locals['actions'][i]]
+                # if(self.game == "Pong"):
+                #     CustomCallbackA.main_data_dict[key]['curr_score_env_'+str(i)] = self.locals['episode_rewards'][-1]
+                # else:
                 CustomCallbackA.main_data_dict[key]['step_reward_env_'+str(i)] = self.locals['rewards'][i]
                 if(self.isLives == True):
                     if(CustomCallbackA.step == 1):
                         CustomCallbackA.main_data_dict[key]['lives_env_'+str(i)] = 3
                     if(CustomCallbackA.step >= 2):
                         CustomCallbackA.main_data_dict[key]['lives_env_'+str(i)] = self.locals['infos'][i]['ale.lives']
-        
+        if(self.game == "Pong" and self.algo != "DQN"):
+            # find_life_game_info_a2c_ppo2_pong
+            self.find_life_game_info_a2c_ppo2_pong()
         # at the last step, write data into csv files
         if(CustomCallbackA.step == (self.num_steps/self.num_envs)):
             self.make_dataframes(self.df_list)
@@ -352,6 +383,8 @@ class CustomCallbackA(BaseCallback):
             self.df_to_csv("df_og.csv", self.df_list)
             self.df_to_parquet()
             
+            # run as part of program or separately like in Highlights DIV 
+            # add flags to say do you want this run later on an existing file 
             # retrieve additional information like item locations, extra reward and life information
             if(self.game == "Pacman"):
                 self.find_item_locations_pacman()
@@ -361,10 +394,17 @@ class CustomCallbackA(BaseCallback):
                     self.find_life_game_info()
             elif(self.game == "Pong"):
                 self.find_item_locations_pong()
+                # if(self.algo != "DQN"):
+                #     self.find_life_game_info_a2c_ppo2_pong()
 
             self.make_dataframes(self.df_list_mod)
             self.df_to_csv("df_mod.csv", self.df_list_mod)
+
             print("Done!")
-        
+            
+            # csv_input = pd.read_csv('A2C_Pacman_data_2021-02-24_12-41-26/df_og.csv')
+            # csv_input['Berries'] = csv_input['Name']
+            # csv_input.to_csv('output.csv', index=False)
+            
         CustomCallbackA.step = CustomCallbackA.step + 1
         return True
