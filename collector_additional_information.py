@@ -49,9 +49,12 @@ class Collector():
 
             # TODO: move this check elsewhere?
             if(True):
-                #for key, value in dict_orig.items():
-                for i in range(self.num_envs):
-                    for key in range (len(dict_orig)):  
+                print("self.dict_orig ", self.dict_orig)
+                num_rows = len(self.dict_orig["state"])
+                print("numrows", num_rows)
+                for key in range (num_rows):  
+                    for i in range(self.num_envs):
+                    # for key in range (len(self.dict_orig)):  
                         print("env ", i, "step ", key)
                     
                         is_end_of_game = False
@@ -59,7 +62,7 @@ class Collector():
                         self.main_data_dict[key]['total_game_env_'+str(i)] = env_info[i]['total_game']
                 
                         # end of game
-                        if(dict_orig['lives_env_' + str(i)][key]== 0):
+                        if(self.dict_orig['lives_env_' + str(i)][key]== 0):
                             self.main_data_dict[key]['game_reward_env_'+str(i)] = env_info[i]['game_reward']
                             # reset_life
                             env_info[i]['total_game'] += 1
@@ -69,8 +72,8 @@ class Collector():
                             env_info[i]['game_reward'] = 0
                             is_end_of_game = True
 
-                        env_info[i]['total_reward'] += dict_orig['step_reward_env_'+str(i)][key]
-                        env_info[i]['life_reward']  += dict_orig['step_reward_env_'+str(i)][key]
+                        env_info[i]['total_reward'] += self.dict_orig['step_reward_env_'+str(i)][key]
+                        env_info[i]['life_reward']  += self.dict_orig['step_reward_env_'+str(i)][key]
                         env_info[i]['game_reward']  += self.dict_orig['step_reward_env_'+str(i)][key]
                         env_info[i]['prev_life'] = self.dict_orig['lives_env_'+str(i)][key]
 
@@ -84,7 +87,7 @@ class Collector():
 
                         # lost a life (episode)
                         # record BEFORE lives is decremented
-                        if(key != len(self.dict_orig)-1 and self.dict_orig['lives_env_'+str(i)][key] != self.dict_orig['lives_env_'+str(i)][key+1]
+                        if(key != num_rows-1 and self.dict_orig['lives_env_'+str(i)][key] != self.dict_orig['lives_env_'+str(i)][key+1]
                             and self.dict_orig['lives_env_'+str(i)][key+1] != 0):
                             self.main_data_dict[key]['total_life_env_'+str(i)] = env_info[i]['total_life']
                             
@@ -101,7 +104,7 @@ class Collector():
         for screen_num in range(self.num_envs, self.num_timesteps + self.num_envs , self.num_envs):
             self.main_data_dict[key] = {}
             for i in range(self.num_envs):
-                filepath = self.directory + "screen/env_" + str(i) + "_screenshot_" + str(screen_num) + "_.png"
+                filepath = self.directory + "/screen/env_" + str(i) + "_screenshot_" + str(screen_num) + "_.png"
                 # print("filepath ", filepath)
                 pacman_coord, pink_ghost_coord, red_ghost_coord, green_ghost_coord, orange_ghost_coord, to_pink_ghost, to_red_ghost, to_green_ghost, to_orange_ghost, pill_eaten, pill_dist, hasBlueGhost = cd.find_all_coords(
                     filepath)
@@ -147,7 +150,7 @@ class Collector():
                         self.main_data_dict[key]['dark_blue_ghost4_coord_y_env_'+ str(i)] = ghost_coords[7]
             
             key += 1
-        print("orddict after pacman locs", self.main_data_dict)
+        # print("orddict after pacman locs", self.main_data_dict)
 
     def find_item_locations_pong(self):
         subfolder = os.path.join(self.directory, 'screen/')
@@ -253,7 +256,7 @@ def main(directory, num_steps, num_envs, algo, env_name):
 if __name__ == '__main__':
     print("in first func")
     # TODO: add some argument checks
-    # TODO: retrieve info from file name instead?
+    # TODO: retrieve info from file name instead
     parser = argparse.ArgumentParser()
     parser.add_argument('--filepath', help='relative path to the csv file', type=str, default="results")
     parser.add_argument('--num_envs', help='set the number of environments', type=int, default=1)

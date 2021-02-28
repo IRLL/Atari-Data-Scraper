@@ -47,8 +47,8 @@ class CustomCallbackA(BaseCallback):
         self.num_envs = num_envs
         self.algo = algo
         self.game = game
-        print("num stepss", self.num_steps)
-        print("num timetepss", self.num_timesteps)
+        print("num steps", self.num_steps)
+        print("num timeteps", self.num_timesteps)
         print("game has lives? ", self.isLives)
         # env <MaxAndSkipEnv<NoopResetEnv<TimeLimit<AtariEnv<MsPacmanNoFrameskip-v4>>>>>
         print("dir ", self.directory)
@@ -125,7 +125,7 @@ class CustomCallbackA(BaseCallback):
         for screen_num in range(self.num_envs, self.num_timesteps + self.num_envs , self.num_envs):
             for i in range(self.num_envs):
                 filepath = subfolder + "env_" + str(i) + "_screenshot_" + str(screen_num) + "_.png"
-                # print("filepath ", filepath)
+                print("filepath ", filepath)
                 key = screen_num
                 pacman_coord, pink_ghost_coord, red_ghost_coord, green_ghost_coord, orange_ghost_coord, to_pink_ghost, to_red_ghost, to_green_ghost, to_orange_ghost, pill_eaten, pill_dist, hasBlueGhost = cd.find_all_coords(
                     filepath)
@@ -231,7 +231,6 @@ class CustomCallbackA(BaseCallback):
         episode_reward = 0
         total_reward = 0
         game_reward = 0
-        print("in util func")
         for key, value in CustomCallbackA.main_data_dict.items():
             if(key < 2):
                 CustomCallbackA.main_data_dict[key]['step_reward'] = value['cumulative_episode_reward']
@@ -323,9 +322,9 @@ class CustomCallbackA(BaseCallback):
         """
         # print("locals ", self.locals)
         # what timestep you think
-        print("timestep ",CustomCallbackA.step)
+        # print("timestep ",CustomCallbackA.step)
         # what timestep a2c or ppo2 learn() is on 
-        print("a2c/ppo2 num timestep",self.num_timesteps)
+        # print("a2c/ppo2 num timestep",self.num_timesteps)
        
         # TODO: add flag to save screenshots or not
         subfolder = os.path.join(self.directory, 'screen/')
@@ -373,39 +372,17 @@ class CustomCallbackA(BaseCallback):
                         CustomCallbackA.main_data_dict[key]['lives_env_'+str(i)] = 3
                     if(CustomCallbackA.step >= 2):
                         CustomCallbackA.main_data_dict[key]['lives_env_'+str(i)] = self.locals['infos'][i]['ale.lives']
+
         if(self.game == "Pong" and self.algo != "DQN"):
-            # find_life_game_info_a2c_ppo2_pong
+            # extra processing for score
             self.find_life_game_info_a2c_ppo2_pong()
+
         # at the last step, write data into csv files
         if(CustomCallbackA.step == (self.num_steps/self.num_envs)):
             self.make_dataframes(self.df_list)
             # save minimal data
             self.df_to_csv("df_og.csv", self.df_list)
             self.df_to_parquet()
-            
-            # run as part of program or separately like in Highlights DIV 
-            # add flags to say do you want this run later on an existing file 
-            # retrieve additional information like item locations, extra reward and life information
-            
-            # if(self.game == "Pacman"):
-            #     self.find_item_locations_pacman()
-            #     if(self.algo == "DQN"):
-            #         self.find_life_game_info_dqn()
-            #     else:
-            #         self.find_life_game_info()
-            # elif(self.game == "Pong"):
-            #     self.find_item_locations_pong()
-            #     # if(self.algo != "DQN"):
-            #     #     self.find_life_game_info_a2c_ppo2_pong()
-
-            # self.make_dataframes(self.df_list_mod)
-            # self.df_to_csv("df_mod.csv", self.df_list_mod)
-
-            print("Done!")
-            
-            # csv_input = pd.read_csv('A2C_Pacman_data_2021-02-24_12-41-26/df_og.csv')
-            # csv_input['Berries'] = csv_input['Name']
-            # csv_input.to_csv('output.csv', index=False)
             
         CustomCallbackA.step = CustomCallbackA.step + 1
         return True
