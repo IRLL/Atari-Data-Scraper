@@ -125,7 +125,7 @@ class CustomCallbackA(BaseCallback):
         for screen_num in range(self.num_envs, self.num_timesteps + self.num_envs , self.num_envs):
             for i in range(self.num_envs):
                 filepath = subfolder + "env_" + str(i) + "_screenshot_" + str(screen_num) + "_.png"
-                print("filepath ", filepath)
+                # print("filepath ", filepath)
                 key = screen_num
                 pacman_coord, pink_ghost_coord, red_ghost_coord, green_ghost_coord, orange_ghost_coord, to_pink_ghost, to_red_ghost, to_green_ghost, to_orange_ghost, pill_eaten, pill_dist, hasBlueGhost = cd.find_all_coords(
                     filepath)

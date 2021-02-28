@@ -6,23 +6,17 @@ import colour_detection as cd
 import argparse
 
 class Collector():
-    
-    num_envs = 2
-    num_timesteps = 20
-
     def __init__(self, directory='results', num_timesteps=10, num_envs = 1):
         self.directory = directory
-        print("directory ", directory)
-        print("directory type ", type(directory))
         self.num_timesteps = num_timesteps
         self.num_envs = num_envs
         # path_to_original_csv = str(directory) + '/df_og.csv'
         path_to_original_csv = os.path.join(self.directory, 'df_og.csv')
-        print("path ", path_to_original_csv)
         self.csv_input = pd.read_csv(path_to_original_csv)
         self.dict_orig = self.csv_input.to_dict()
         self.main_data_dict = OrderedDict()
         self.df_list = []
+
     def make_dataframes(self, df):
         # Make the main Dataframe
         main_df = pd.DataFrame.from_dict(
@@ -49,16 +43,11 @@ class Collector():
 
             # TODO: move this check elsewhere?
             if(True):
-                print("self.dict_orig ", self.dict_orig)
                 num_rows = len(self.dict_orig["state"])
-                print("numrows", num_rows)
                 for key in range (num_rows):  
                     for i in range(self.num_envs):
                     # for key in range (len(self.dict_orig)):  
-                        print("env ", i, "step ", key)
-                    
                         is_end_of_game = False
-
                         self.main_data_dict[key]['total_game_env_'+str(i)] = env_info[i]['total_game']
                 
                         # end of game
@@ -159,8 +148,6 @@ class Collector():
             self.main_data_dict[key] = {}
             for i in range(self.num_envs):
                 filepath = subfolder + "env_" + str(i) + "_screenshot_" + str(screen_num) + "_.png"
-                print("filepath ", filepath)
-                # key = screen_num
                 ball_coord, green_paddle_coord, brown_paddle_coord, distance = cd.find_pong_coords(filepath)
                 self.main_data_dict[key]['ball_coord_x_env_'+ str(i)] = ball_coord[0]
                 self.main_data_dict[key]['ball_coord_y_env_'+ str(i)] = ball_coord[1]
@@ -177,11 +164,7 @@ class Collector():
         episode_reward = 0
         total_reward = 0
         game_reward = 0
-        print("in util func")
-        print("self.dict_orig ", self.dict_orig)
-        print("main_data dic ",  self.main_data_dict)
         num_rows = len(self.dict_orig["state"])
-        print("numrows", num_rows)
         for key in range (num_rows):
             print("key ", key)  
             # self.main_data_dict[key] = {}
@@ -230,13 +213,14 @@ class Collector():
     def output_modified_csv(self):
         val = self.make_dataframes(self.df_list)
         for v in val:
-            print("v ", v)
             self.csv_input[v] = val[v]
-        self.csv_input.to_csv(self.directory + "/df_mod.csv", index=False)
-        print("ok done modified csv")
+        self.csv_input.to_csv(self.directory + "/df_mod.csv", index=False) 
+        filepath = os.path.join(self.directory, "df_mod.csv")
+        print("Making modified csv with additional info and path is: ")
+        print(filepath) 
    
 def main(directory, num_steps, num_envs, algo, env_name):
-    print("test main func")
+    print("******test main func")
     collector = Collector(directory, num_steps, num_envs)
     if(algo == "A2C" or algo == "PPO2"):
         if(env_name == "Pacman"):
@@ -252,7 +236,7 @@ def main(directory, num_steps, num_envs, algo, env_name):
         elif(env_name == "Pong"):
             collector.find_item_locations_pong()
         collector.output_modified_csv()
-        
+    
 if __name__ == '__main__':
     print("in first func")
     # TODO: add some argument checks
@@ -272,7 +256,5 @@ if __name__ == '__main__':
     # multiply steps and envs
     algo = args.algo.upper()
     env_name = args.env_name
-    print("filepath ", filepath)
-    print("type fielpath ", type(filepath))
     main(filepath, num_steps * num_envs, num_envs, algo, env_name)
-    print("here is ur file")
+    
