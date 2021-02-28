@@ -3,29 +3,23 @@ import numpy as np
 from collections import OrderedDict
 import os
 import colour_detection as cd
+import argparse
 
 class Collector():
     
-    # csv_input['New_col'] = df["column1"]
-    # csv_input.to_csv('A2C_test/mod_output.csv', index=False)
-    # dataframe is a db table
-
-    # directory = "A2C_Pong_data_2021-02-27_16-29-06"
-    # directory = "DQN_test"
-    # self.num_envs = 2
-    # self.num_timesteps = 20
     num_envs = 2
     num_timesteps = 20
-    
-    # csv_input = pd.read_csv(directory + '/df_og.csv')
-    # self.dict_orig = csv_input.to_dict()
-    # print("value content ", dict_orig["lives_env_0"][0])
-    # print("value ", value)
-    def __init__(self, directory='results/', num_timesteps=10, num_envs = 1):
+
+    def __init__(self, directory='results', num_timesteps=10, num_envs = 1):
         self.directory = directory
+        print("directory ", directory)
+        print("directory type ", type(directory))
         self.num_timesteps = num_timesteps
         self.num_envs = num_envs
-        self.csv_input = pd.read_csv(self.directory + '/df_og.csv')
+        # path_to_original_csv = str(directory) + '/df_og.csv'
+        path_to_original_csv = os.path.join(self.directory, 'df_og.csv')
+        print("path ", path_to_original_csv)
+        self.csv_input = pd.read_csv(path_to_original_csv)
         self.dict_orig = self.csv_input.to_dict()
         self.main_data_dict = OrderedDict()
         self.df_list = []
@@ -229,36 +223,53 @@ class Collector():
                 steps_life += 1
                 steps_game += 1
 
-    # csv_input = pd.read_csv(directory + '/df_og.csv')
-    # value = csv_input.to_dict()
-    # print("value content ", value["lives_env_0"][0])
-    # print("value ", value)
-    # print("csv ", type(csv_input))
-    # print("col ", csv_input['step_reward_env_0'])
 
-    # find_item_locations_pacman()
-    # find_life_game_info()
-    # find_life_game_info_dqn()
-    # find_item_locations_pong()
-    # val = make_dataframes(df_list)
-    # print("dataframe result ", val)
-    # print("df list ", df_list)
-    # print("df list type", type(df_list))
-    # print("val of dataframes" ,val)
-    # print("val " , type(val))
     def output_modified_csv(self):
         val = self.make_dataframes(self.df_list)
         for v in val:
             print("v ", v)
             self.csv_input[v] = val[v]
-        self.csv_input.to_csv(self.directory + "/compare_to_mod_legit_actual.csv", index=False)
+        self.csv_input.to_csv(self.directory + "/df_mod.csv", index=False)
         print("ok done modified csv")
-    # print("pacman coord x env 0", val["pacman_coord_x_env_0"])
-    # csv_input["test col"] = val["pacman_coord_x_env_0"]
-    # print("here ", df_list['pacman_coord_x_env_0'])
-    # numpy_data = np.array([1,2,3,4,5,6,7,8,9,10])
-    # df = pd.DataFrame(data=numpy_data, columns=["column1"])
-    # csv_input['New_col'] = df["column1"]
-    # csv_input.to_csv('A2C_test/compare_to_mod.csv', index=False)
-
-    # dataframe is a db table
+   
+def main(directory, num_steps, num_envs, algo, env_name):
+    print("test main func")
+    collector = Collector(directory, num_steps, num_envs)
+    if(algo == "A2C" or algo == "PPO2"):
+        if(env_name == "Pacman"):
+            collector.find_item_locations_pacman()
+            collector.find_life_game_info()
+        elif(env_name == "Pong"):
+            collector.find_item_locations_pong()
+        collector.output_modified_csv()
+    elif(algo == "DQN"):
+        if(env_name == "Pacman"):
+            collector.find_item_locations_pacman()
+            collector.find_life_game_info_dqn()
+        elif(env_name == "Pong"):
+            collector.find_item_locations_pong()
+        collector.output_modified_csv()
+        
+if __name__ == '__main__':
+    print("in first func")
+    # TODO: add some argument checks
+    # TODO: retrieve info from file name instead?
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--filepath', help='relative path to the csv file', type=str, default="results")
+    parser.add_argument('--num_envs', help='set the number of environments', type=int, default=1)
+    parser.add_argument('--num_steps', help='set the number of steps/actions you want the agent to take', type=int, default=1000)
+    parser.add_argument('--algo', help='set the algorithm with which to train this model', type=str, default="DQN")
+    parser.add_argument('--env_name', help='environment to use in training', type=str, default="Pacman")
+    
+    args = parser.parse_args()
+    #  A2C_Pong_data_2021-02-28_11-54-10
+    filepath = args.filepath
+    num_steps = args.num_steps
+    num_envs = args.num_envs
+    # multiply steps and envs
+    algo = args.algo.upper()
+    env_name = args.env_name
+    print("filepath ", filepath)
+    print("type fielpath ", type(filepath))
+    main(filepath, num_steps * num_envs, num_envs, algo, env_name)
+    print("here is ur file")
