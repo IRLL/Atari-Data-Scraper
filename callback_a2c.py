@@ -386,19 +386,20 @@ class CustomCallbackA(BaseCallback):
             # run as part of program or separately like in Highlights DIV 
             # add flags to say do you want this run later on an existing file 
             # retrieve additional information like item locations, extra reward and life information
-            if(self.game == "Pacman"):
-                self.find_item_locations_pacman()
-                if(self.algo == "DQN"):
-                    self.find_life_game_info_dqn()
-                else:
-                    self.find_life_game_info()
-            elif(self.game == "Pong"):
-                self.find_item_locations_pong()
-                # if(self.algo != "DQN"):
-                #     self.find_life_game_info_a2c_ppo2_pong()
+            
+            # if(self.game == "Pacman"):
+            #     self.find_item_locations_pacman()
+            #     if(self.algo == "DQN"):
+            #         self.find_life_game_info_dqn()
+            #     else:
+            #         self.find_life_game_info()
+            # elif(self.game == "Pong"):
+            #     self.find_item_locations_pong()
+            #     # if(self.algo != "DQN"):
+            #     #     self.find_life_game_info_a2c_ppo2_pong()
 
-            self.make_dataframes(self.df_list_mod)
-            self.df_to_csv("df_mod.csv", self.df_list_mod)
+            # self.make_dataframes(self.df_list_mod)
+            # self.df_to_csv("df_mod.csv", self.df_list_mod)
 
             print("Done!")
             

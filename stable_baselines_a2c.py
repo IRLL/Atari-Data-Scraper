@@ -13,7 +13,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import numpy as np
 from callback_a2c import CustomCallbackA
-from callback_pong import CustomCallbackPong
+from collector_additional_information import Collector
 from stable_baselines.bench import Monitor
 from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines.common.cmd_util import make_vec_env
@@ -42,6 +42,7 @@ parser.add_argument('--algo', help='set the algorithm with which to train this m
 parser.add_argument('--save', help='save the trained model', action='store_true', default=False)
 parser.add_argument('--environment', help='environment to use in training', type=str, default="MsPacmanNoFrameskip-v4")
 parser.add_argument('--model', help = 'use a saved pretrained model', type=str, default = "")
+parser.add_argument('--collect_extra', help='collect the extra information from game', action='store_true', default=False)
 
 args = parser.parse_args()
 isLives = args.lives
@@ -49,15 +50,15 @@ isLives = args.lives
 num_steps = args.num_steps
 # set num envs
 num_envs = args.num_envs
-# set algorithm
+# set algorithm (DQN, A2C, PPO2)
 algo = args.algo.upper()
 # set environment
 environment = args.environment
 # set shorthand env name
 env_name = environment_to_name[environment]
-# set if model is to be saved
 isSave = args.save
 presaved_model = args.model
+isCollectExtra = args.collect_extra
 
 # create folder and subfolders for data
 tmp_name = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
@@ -68,16 +69,15 @@ os.makedirs(subfolder)
 
 # TODO: make saved model names more flexible, instead of relying on it to follow the pattern:
 # <ALGORITHM_NAME>_<GAME>_model_<TIMESTAMP>
+
 if(presaved_model != ""):
-    print("model ", presaved_model)
     parse_model_name = []
-    
     parse_model_name =  presaved_model.split("_")
-    print("hererere ", parse_model_name[0] )
-    print("here", len(parse_model_name))
+
     if len(parse_model_name) < 2:
         print("Invalid presaved model name. Please check model naming convention or directory location.")
         sys.exit(1)
+
     model_algo = parse_model_name[0]
     # override algo flag param in case it is different from the presaved model
     algo = model_algo
@@ -135,6 +135,16 @@ elif(algo == "A2C" or algo == "PPO2"):
     if isSave:
         model.save(algo + "_" + env_name + "_model_" + tmp_name)
 
+    if isCollectExtra:
+        collector = Collector(dir, num_steps, num_envs)
+
+        if(env_name == "Pacman"):
+            collector.find_item_locations_pacman()
+            collector.find_life_game_info()
+        elif(env_name == "Pong"):
+            collector.find_item_locations_pong()
+        collector.output_modified_csv()
+        
 elif(algo == "DQN"):
     env = make_atari(environment)
     step_callback = CustomCallbackA(0,env.unwrapped.get_action_meanings(), env,  num_steps, dir, isLives, env, 1, "DQN", env_name)
@@ -142,8 +152,22 @@ elif(algo == "DQN"):
     model.learn(total_timesteps=num_steps, callback = step_callback)
     if isSave:
         model.save("DQN_" + env_name + "_model_" + tmp_name)
-
+    
+    if isCollectExtra:
+        print("collect extra ")
+        collector = Collector(dir, num_steps, 1)
+        if(env_name == "Pacman"):
+            # directory, num_envs, num_timesteps
+            collector.find_item_locations_pacman()
+            collector.find_life_game_info_dqn()
+        elif(env_name == "Pong"):
+            collector.find_item_locations_pong()
+        collector.output_modified_csv()
 else:
     print("Incorrect algorithm. Select pass --algo params: DQN or A2C or PPO2.")
+    sys.exit(1)
+
+
+
 
 
