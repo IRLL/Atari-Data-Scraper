@@ -6,24 +6,25 @@ Getting Started
 
 1. Clone the repo `https://github.com/j-vent/data_scraper_clean.git `
 
-2. Install the requirements using  `pip install -r requirements.txt`
+2. Create a virtual environment and install the requirements using  `pip install -r requirements.txt`
 
 Running the code
 ------
 
 To collect the minimum information (state, action, lives, reward) from an agent while training, run the following command:
-``` python stable_baselines_a2c.py --num_envs # --num_steps # --algo [DQN, A2C, PPO2] --environment [Atari game environment] ```
+``` python data_scraper.py --num_envs # --num_steps # --algo [DQN, A2C, PPO2] --environment [Atari game environment] ```
 
 Additional flags:
---lives include if the game environment has lives
---collect_extra include if you want to collect additional information such as location of items in the game (i.e. the agent), and computed rewards for plotting. See below on how to run this separately.
---save include if you want the training model to be saved for future use
---model [Model Name] if you want to use a pre-existing and pre-trained model 
+
+⋅⋅⋅--lives include if the game environment has lives
+⋅⋅⋅--collect_extra include if you want to collect additional information such as location of items in the game (i.e. the agent), and computed rewards for plotting. See below on how to run this separately.
+⋅⋅⋅--save include if you want the training model to be saved for future use
+⋅⋅⋅--model [Model Name] if you want to use a pre-existing and pre-trained model, some examples can be found in the models folder
 
 Example Usage:
-``` python stable_baselines_a2c.py --num_envs 1 --num_steps 2000 --algo DQN --save --environment PongNoFrameskip-v4 --collect_extra ```
+``` python data_scraper.py --num_envs 1 --num_steps 2000 --algo DQN --save --environment PongNoFrameskip-v4 --collect_extra ```
 
-```python stable_baselines_a2c.py --lives --num_envs 2 --num_steps 20 --algo A2C --save --environment MsPacmanNoFrameskip-v4 ```
+```python data_scraper.py --lives --num_envs 2 --num_steps 20 --algo A2C --save --environment MsPacmanNoFrameskip-v4 ```
 
 
 To collect additional information (location of agents/items, distance between item and agent, computed rewards) from an existing CSV file, run the following command:
