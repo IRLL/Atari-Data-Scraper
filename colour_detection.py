@@ -2,9 +2,7 @@ import numpy as np
 import cv2 as cv
 from matplotlib import pyplot as plt
 
-# TODO: maybe make into a class ...
-
-def find_element_centroid(img, colour, coord):
+def find_element_centroid_pacman(img, colour, coord):
     y,x = np.where(np.all(img == colour, axis=2))
     pairs = []
     for i in range(len(x)):
@@ -16,7 +14,7 @@ def find_element_centroid(img, colour, coord):
         coord[0] = round(coordx)
         coord[1] = round(coordy)
 
-# TODO: rewrite this method and the find_elem_centroid into one method, can just pass in another param probably
+# Duplicate colours are found in the game board for pong, so extra bounding needs to be added
 def find_element_centroid_pong(img, colour, coord):
     y,x = np.where(np.all(img == colour, axis=2))
     pairs = []
@@ -32,7 +30,6 @@ def find_element_centroid_pong(img, colour, coord):
         coord[1] = round(coordy)
 
 
-# TODO: rewrite to put dist[0] elsewhere
 def find_distances(coordA, coordB, dist):
     dist[0] = abs(coordA[0] - coordB[0]) + abs(coordA[1] - coordB[1])
 
@@ -66,7 +63,6 @@ green_ghost_coord = [0, 0]
 orange_ghost_coord = [0, 0]
 
 # Declare distances for Pacman
-# TODO: make into one array :(
 to_pink_ghost = [0]
 to_red_ghost = [0]
 to_green_ghost = [0]
@@ -88,16 +84,16 @@ pill_eaten = [False, False, False, False]
 pill_dist = [0,0,0,0]
 
 
-def find_all_coords(im):
+def find_pacman_coords(im):
     img = cv.imread(im)
-    find_element_centroid(img, pacman_colour, pacman_coord)
-    find_element_centroid(img, pink_ghost_colour, pink_ghost_coord)
+    find_element_centroid_pacman(img, pacman_colour, pacman_coord)
+    find_element_centroid_pacman(img, pink_ghost_colour, pink_ghost_coord)
     find_distances(pink_ghost_coord, pacman_coord, to_pink_ghost)
-    find_element_centroid(img, red_ghost_colour, red_ghost_coord)
+    find_element_centroid_pacman(img, red_ghost_colour, red_ghost_coord)
     find_distances(red_ghost_coord, pacman_coord, to_red_ghost)
-    find_element_centroid(img, green_ghost_colour, green_ghost_coord)
+    find_element_centroid_pacman(img, green_ghost_colour, green_ghost_coord)
     find_distances(green_ghost_coord, pacman_coord, to_green_ghost)
-    find_element_centroid(img, orange_ghost_colour, orange_ghost_coord)
+    find_element_centroid_pacman(img, orange_ghost_colour, orange_ghost_coord)
     find_distances(orange_ghost_coord, pacman_coord, to_orange_ghost)
 
     check_pills()
@@ -122,6 +118,20 @@ def find_pong_coords(im):
     find_element_centroid_pong(img, brown_paddle_colour, brown_paddle_coord)
     find_distances(green_paddle_coord, ball_coord, dist_ball_green_paddle)
     return ball_coord, green_paddle_coord, brown_paddle_coord, dist_ball_green_paddle[0]
+
+# ADDING ADDITIONAL ATARI ENVS
+# TODO: Declare the colours of items you want to track in BGR array 
+# item_colour = [BBB, GGG, RRR]
+# TODO: Declare arrays for coordinates of item and distance to item
+# item_coord = [0,0]
+# dist_to_item = [0]
+
+# Sample function:
+# def find_env_coords(im):
+#     find_item_centroid_env(...)
+#     find_item_dist(...)
+#     return item_coord, dist_to_item
+
 
 
 
