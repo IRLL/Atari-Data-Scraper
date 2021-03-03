@@ -48,7 +48,7 @@ args = parser.parse_args()
 isLives = args.lives
 # set num timesteps (per environment)
 num_steps = args.num_steps
-# set num envs
+# set num envs (number of games trained concurrently)
 num_envs = args.num_envs
 # set algorithm (DQN, A2C, PPO2)
 algo = args.algo.upper()
@@ -69,7 +69,6 @@ os.makedirs(subfolder)
 
 # TODO: make saved model names more flexible, instead of relying on it to follow the pattern:
 # <ALGORITHM_NAME>_<GAME>_model_<TIMESTAMP>
-
 if(presaved_model != ""):
     parse_model_name = []
     parse_model_name =  presaved_model.split("_")
@@ -108,8 +107,6 @@ if(presaved_model != ""):
         sys.exit(1)
 
     model.set_env(env)
-    # TODO: add this? do not update them at test time
-    # env.training = False
     step_callback = CustomCallback(0,actions, env,  num_steps, dir, isLives, env, num_envs, algo, env_name)
     model.learn(total_timesteps=num_steps, callback = step_callback)
     if isSave:
@@ -157,7 +154,6 @@ elif(algo == "DQN"):
         print("collect extra ")
         collector = Collector(dir, num_steps, 1)
         if(env_name == "Pacman"):
-            # directory, num_envs, num_timesteps
             collector.find_item_locations_pacman()
             collector.find_life_game_info_dqn()
         elif(env_name == "Pong"):

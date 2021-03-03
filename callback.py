@@ -32,9 +32,9 @@ class CustomCallback(BaseCallback):
     num_steps = 10
     isLives = False
     num_envs = 1
-    algo = "DQN"
-    game = "Pacman"
-    og_env = make_atari('MsPacmanNoFrameskip-v4')
+    # algo = "DQN"
+    # game = "Pacman"
+    # og_env = make_atari('MsPacmanNoFrameskip-v4')
     # (0, actions, env,  num_steps, dir, isLives, make_atari('MsPacmanNoFrameskip-v4'), num_envs)
     def __init__(self, verbose=0, env_actions=[], env=None, num_steps=10, dir='results/', isLives=False, og_env = "", num_envs = 1, algo = "DQN", game = "Pacman"):
         super(CustomCallback, self).__init__(verbose)
@@ -50,10 +50,9 @@ class CustomCallback(BaseCallback):
         print("num steps", self.num_steps)
         print("num timeteps", self.num_timesteps)
         print("game has lives? ", self.isLives)
-        # env <MaxAndSkipEnv<NoopResetEnv<TimeLimit<AtariEnv<MsPacmanNoFrameskip-v4>>>>>
         print("dir ", self.directory)
         print("env", self.env)
-        print("og_env", self.og_env)
+        print("env name", self.og_env)
         print("mod ",  self.model)
         # Those variables will be accessible in the callback
         # (they are defined in the base class)
@@ -120,161 +119,7 @@ class CustomCallback(BaseCallback):
             observation = observations[i]
             self.save_frame(observation, self.save_file_screen, index)
 
-    def find_item_locations_pacman(self):
-        subfolder = os.path.join(self.directory, 'screen/')
-        for screen_num in range(self.num_envs, self.num_timesteps + self.num_envs , self.num_envs):
-            for i in range(self.num_envs):
-                filepath = subfolder + "env_" + str(i) + "_screenshot_" + str(screen_num) + "_.png"
-                # print("filepath ", filepath)
-                key = screen_num
-                pacman_coord, pink_ghost_coord, red_ghost_coord, green_ghost_coord, orange_ghost_coord, to_pink_ghost, to_red_ghost, to_green_ghost, to_orange_ghost, pill_eaten, pill_dist, hasBlueGhost = cd.find_all_coords(
-                    filepath)
-                CustomCallback.main_data_dict[key]['pacman_coord_x_env_'+ str(i)] = pacman_coord[0]
-                CustomCallback.main_data_dict[key]['pacman_coord_y_env_'+ str(i)] = pacman_coord[1]
-                CustomCallback.main_data_dict[key]['pink_ghost_coord_x_env_'+ str(i)] = pink_ghost_coord[0]
-                CustomCallback.main_data_dict[key]['pink_ghost_coord_y_env_'+ str(i)] = pink_ghost_coord[1]
-                CustomCallback.main_data_dict[key]['to_pink_ghost_env_' + str(i)] = to_pink_ghost
-                CustomCallback.main_data_dict[key]['red_ghost_coord_x_env_' + str(i) ] = red_ghost_coord[0]
-                CustomCallback.main_data_dict[key]['red_ghost_coord_y_env_'+ str(i)] = red_ghost_coord[1]
-                CustomCallback.main_data_dict[key]['to_red_ghost_env_'+ str(i)] = to_red_ghost
-                CustomCallback.main_data_dict[key]['green_ghost_coord_x_env_'+ str(i)] = green_ghost_coord[0]
-                CustomCallback.main_data_dict[key]['green_ghost_coord_y_env_'+ str(i)] = green_ghost_coord[1]
-                CustomCallback.main_data_dict[key]['to_green_ghost_env_'+ str(i)] = to_green_ghost
-                CustomCallback.main_data_dict[key]['orange_ghost_coord_x_env_'+ str(i)] = orange_ghost_coord[0]
-                CustomCallback.main_data_dict[key]['orange_ghost_coord_y_env_'+ str(i)] = orange_ghost_coord[1]
-                CustomCallback.main_data_dict[key]['to_orange_ghost_env_'+ str(i)] = to_orange_ghost
-
-                CustomCallback.main_data_dict[key]['pill_one_eaten_env_'+ str(i)] = pill_eaten[0]
-                CustomCallback.main_data_dict[key]['to_pill_one_env_'+ str(i)] = pill_dist[0]
-                CustomCallback.main_data_dict[key]['pill_two_eaten_env_'+ str(i)] = pill_eaten[1]
-                CustomCallback.main_data_dict[key]['to_pill_two_env_'+ str(i)] = pill_dist[1]
-                CustomCallback.main_data_dict[key]['pill_three_eaten_env_'+ str(i)] = pill_eaten[2]
-                CustomCallback.main_data_dict[key]['to_pill_three_env_'+ str(i)] = pill_dist[2]
-                CustomCallback.main_data_dict[key]['pill_four_eaten_env_'+ str(i)] = pill_eaten[3]
-                CustomCallback.main_data_dict[key]['to_pill_four_env_'+ str(i)] = pill_dist[3]
-
-                # find blue ghosts, if any
-                if(hasBlueGhost):
-                    imagePeeler = GhostTracker()
-                    ghost_coords = imagePeeler.wheresPacman(cv.imread(filepath))
-                    if(ghost_coords[0] != -1):
-                        CustomCallback.main_data_dict[key]['dark_blue_ghost1_coord_x_env_'+ str(i)] = ghost_coords[0]
-                        CustomCallback.main_data_dict[key]['dark_blue_ghost1_coord_y_env_'+ str(i)] = ghost_coords[1]
-                    if(ghost_coords[2] != -1):
-                        CustomCallback.main_data_dict[key]['dark_blue_ghost2_coord_x_env_'+ str(i)] = ghost_coords[2]
-                        CustomCallback.main_data_dict[key]['dark_blue_ghost2_coord_y_env_'+ str(i)] = ghost_coords[3]
-                    if(ghost_coords[4] != -1):
-                        CustomCallback.main_data_dict[key]['dark_blue_ghost3_coord_x_env_'+ str(i)] = ghost_coords[4]
-                        CustomCallback.main_data_dict[key]['dark_blue_ghost3_coord_y_env_'+ str(i)] = ghost_coords[5]
-                    if(ghost_coords[6] != -1):
-                        CustomCallback.main_data_dict[key]['dark_blue_ghost4_coord_x_env_'+ str(i)] = ghost_coords[6]
-                        CustomCallback.main_data_dict[key]['dark_blue_ghost4_coord_y_env_'+ str(i)] = ghost_coords[7]
-
-    def find_life_game_info(self):
-        env_info = OrderedDict()
-        for env_num in range(self.num_envs):
-            env_info[env_num] = {}
-            env_info[env_num]['total_life'] = env_info[env_num]['total_game'] = \
-                env_info[env_num]['steps_life'] = env_info[env_num]['steps_game'] = 1
-            env_info[env_num]['prev_life'] = 3
-            env_info[env_num]['life_reward'] = env_info[env_num]['game_reward'] = \
-                env_info[env_num]['total_reward'] = 0
-
-        # TODO: move this check elsewhere?
-        if(self.isLives):
-            for key, value in CustomCallback.main_data_dict.items():  
-                for i in range(self.num_envs):
-                    is_end_of_game = False
-
-                    CustomCallback.main_data_dict[key]['total_game_env_'+str(i)] = env_info[i]['total_game']
-            
-                    # end of game
-                    if(value['lives_env_' + str(i)] == 0):
-                        CustomCallback.main_data_dict[key]['game_reward_env_'+str(i)] = env_info[i]['game_reward']
-                        # reset_life
-                        env_info[i]['total_game'] += 1
-                        env_info[i]['steps_life'] = 0
-                        env_info[i]['steps_game'] = 0
-                        env_info[i]['life_reward'] = 0
-                        env_info[i]['game_reward'] = 0
-                        is_end_of_game = True
-
-                    env_info[i]['total_reward'] += value['step_reward_env_'+str(i)]
-                    env_info[i]['life_reward']  += value['step_reward_env_'+str(i)]  
-                    env_info[i]['game_reward']  += value['step_reward_env_'+str(i)] 
-                    env_info[i]['prev_life'] = value['lives_env_'+str(i)]
-
-                    # update info in main dict
-                    CustomCallback.main_data_dict[key]['steps_life_env_'+str(i)] = env_info[i]['steps_life'] 
-                    CustomCallback.main_data_dict[key]['steps_game_env_'+str(i)] = env_info[i]['steps_game']
-                    # CustomCallback.main_data_dict[key]['total_game_env_'+str(i)] = env_info[i]['total_game']
-                    CustomCallback.main_data_dict[key]['life_reward_env_'+str(i)] = env_info[i]['life_reward']
-                    CustomCallback.main_data_dict[key]['total_reward_env_'+str(i)] = env_info[i]['total_reward']
-                    CustomCallback.main_data_dict[key]['is_end_of_game_env_'+str(i)] = is_end_of_game
-
-                    # lost a life (episode)
-                    # record BEFORE lives is decremented
-                    if(key != self.num_steps and value['lives_env_'+str(i)] != CustomCallback.main_data_dict[key+self.num_envs]['lives_env_'+str(i)]
-                        and CustomCallback.main_data_dict[key+self.num_envs]['lives_env_'+str(i)] != 0):
-                        CustomCallback.main_data_dict[key]['total_life_env_'+str(i)] = env_info[i]['total_life']
-                        
-                        env_info[i]['total_life']  += 1
-                        env_info[i]['steps_life'] = 0
-                        env_info[i]['life_reward'] = 0
-
-                    env_info[i]['steps_life'] += 1
-                    env_info[i]['steps_game'] += 1
-
-    def find_life_game_info_dqn(self):
-        total_life = total_game = steps_life = steps_game = 1
-        prev_life = 3
-        episode_reward = 0
-        total_reward = 0
-        game_reward = 0
-        for key, value in CustomCallback.main_data_dict.items():
-            if(key < 2):
-                CustomCallback.main_data_dict[key]['step_reward'] = value['cumulative_episode_reward']
-            else:
-                if( CustomCallback.main_data_dict[key-1]['lives'] == 0):
-                    CustomCallback.main_data_dict[key]['step_reward'] = 0
-                else:
-                    CustomCallback.main_data_dict[key]['step_reward'] = value['cumulative_episode_reward'] - \
-                        CustomCallback.main_data_dict[key-1]['cumulative_episode_reward']
-                
-            episode_reward += CustomCallback.main_data_dict[key]['step_reward'] 
-            total_reward += CustomCallback.main_data_dict[key]['step_reward'] 
-            if(self.isLives):
-                # game over (epoch)
-                CustomCallback.main_data_dict[key]['steps_life'] = steps_life
-                if(value['lives'] == 0):
-                    CustomCallback.main_data_dict[key]['game_reward'] = game_reward
-                    # reset values
-                    total_game += 1
-                    steps_game = steps_life = 0
-                    game_reward = 0
-                    episode_reward = 0
-                CustomCallback.main_data_dict[key]['steps_game'] = steps_game
-                CustomCallback.main_data_dict[key]['total_game'] = total_game
-
-                CustomCallback.main_data_dict[key]['total_reward'] = total_reward
-
-                if(key != self.num_steps and value['lives'] != CustomCallback.main_data_dict[key+1]['lives']
-                    and value['lives'] != 0):
-
-                    # not sure if this is correct
-                    CustomCallback.main_data_dict[key]['total_life'] = total_life
-                    CustomCallback.main_data_dict[key]['episode_reward'] = episode_reward
-                    game_reward += episode_reward
-                    total_life += 1
-                    steps_life = 0
-                    episode_reward = 0
-                # normal step
-                prev_life = value['lives']
-                steps_life += 1
-                steps_game += 1
-
     def find_life_game_info_a2c_ppo2_pong(self):
-        # [key]['step_reward_env_'+str(i)] 
         env_info = OrderedDict()
         for env_num in range(self.num_envs):
             env_info[env_num] = {}
@@ -283,8 +128,7 @@ class CustomCallback(BaseCallback):
             env_info[env_num]['display_score_env_'+ str(env_num)] = 0
         for env_num in range(self.num_envs):
             for key, value in CustomCallback.main_data_dict.items():  
-                # score with respect to the agent
-                # print("score of agent ", value['step_reward_env_'+str(i)])
+                # score with respect to the agent (-1 for point to computer, 1 for point to agent, 0 for no points)
                 reward_wrt_agent = value['step_reward_env_'+str(env_num)]
                 if reward_wrt_agent < 0:
                     env_info[env_num]['negative_score_env_'+ str(env_num)] += 1
@@ -295,7 +139,7 @@ class CustomCallback(BaseCallback):
                     env_info[env_num]['negative_score_env_'+ str(env_num)] = env_info[env_num]['positive_score_env_'+ str(env_num)] = \
                         env_info[env_num]['display_score_env_'+ str(env_num)] = 0
                 CustomCallback.main_data_dict[key]['curr_score_env_'+ str(env_num)] = env_info[env_num]['display_score_env_'+ str(env_num)]
-                # print("i ", key, " score ", reward_wrt_agent, " display ", env_info[env_num]['display_score_env_'+ str(env_num)], " pos ", env_info[env_num]['positive_score_env_'+ str(env_num)] , " neg ",  env_info[env_num]['negative_score_env_'+ str(env_num)])
+                
     def find_item_locations_pong(self):
         subfolder = os.path.join(self.directory, 'screen/')
         for screen_num in range(self.num_envs, self.num_timesteps + self.num_envs , self.num_envs):
@@ -320,11 +164,11 @@ class CustomCallback(BaseCallback):
 
         :return: (bool) If the callback returns False, training is aborted early.
         """
-        print("locals ", self.locals)
-        # what timestep you think
-        print("timestep ",CustomCallback.step)
-        # what timestep a2c or ppo2 learn() is on 
-        print("a2c/ppo2 num timestep",self.num_timesteps)
+        # print("locals ", self.locals)
+        # # what timestep you think
+        # print("timestep ",CustomCallback.step)
+        # # what timestep a2c or ppo2 learn() is on 
+        # print("a2c/ppo2 num timestep",self.num_timesteps)
        
         # TODO: add flag to save screenshots or not
         subfolder = os.path.join(self.directory, 'screen/')
@@ -339,7 +183,6 @@ class CustomCallback(BaseCallback):
         elif (self.algo == "DQN"):
             self.env.ale.saveScreenPNG(subfolder+"env_" + str(0) + img_name + "_.png")
 
-        # TODO: move out of this dict and add to dict with loop
         step_stats = {self.num_timesteps: {
             'num_timesteps': self.num_timesteps,
             'state': self.num_timesteps/self.num_envs,
@@ -363,9 +206,6 @@ class CustomCallback(BaseCallback):
             for i in range(self.num_envs):
                 CustomCallback.main_data_dict[key]['action_env_'+str(i)] =  self.locals['actions'][i]
                 CustomCallback.main_data_dict[key]['action_name_env_'+str(i)] =  self.actions[self.locals['actions'][i]]
-                # if(self.game == "Pong"):
-                #     CustomCallback.main_data_dict[key]['curr_score_env_'+str(i)] = self.locals['episode_rewards'][-1]
-                # else:
                 CustomCallback.main_data_dict[key]['step_reward_env_'+str(i)] = self.locals['rewards'][i]
                 if(self.isLives == True):
                     if(CustomCallback.step == 1):
@@ -374,18 +214,14 @@ class CustomCallback(BaseCallback):
                         CustomCallback.main_data_dict[key]['lives_env_'+str(i)] = self.locals['infos'][i]['ale.lives']
 
         if(self.game == "Pong" and self.algo != "DQN"):
-            # extra processing for score
+            # extra processing for Pong scores
             self.find_life_game_info_a2c_ppo2_pong()
 
         # at the last step, write data into csv files
-        print("callback step", CustomCallback.step)
-        print("target ", self.num_steps/self.num_envs)
         if(CustomCallback.step == (self.num_steps/self.num_envs)):
             self.make_dataframes(self.df_list)
             # save minimal data
             self.df_to_csv("df_og.csv", self.df_list)
             self.df_to_parquet()
-            print("saved data")
-            
         CustomCallback.step = CustomCallback.step + 1
         return True

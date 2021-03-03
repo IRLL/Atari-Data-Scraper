@@ -10,25 +10,17 @@ class Collector():
         self.directory = directory
         self.num_timesteps = num_timesteps
         self.num_envs = num_envs
-        # path_to_original_csv = str(directory) + '/df_og.csv'
         path_to_original_csv = os.path.join(self.directory, 'df_og.csv')
         self.csv_input = pd.read_csv(path_to_original_csv)
         self.dict_orig = self.csv_input.to_dict()
         self.main_data_dict = OrderedDict()
-        self.df_list = []
+        #self.df_list = []
 
-    def make_dataframes(self, df):
+    def make_dataframes(self):
         # Make the main Dataframe
         main_df = pd.DataFrame.from_dict(
             self.main_data_dict, orient='index')
-        
-        # call to save last items as seperate df
-        # self.save_last_line(args.stream_folder, main_df)
-
-        # Now that we've parsed down the main df, load all into our list
-        # of DFs and our list of Names
-        # self.df_list.append(main_df)
-        df.append(main_df)
+        # df.append(main_df)
         return main_df
 
     def find_life_game_info(self):
@@ -211,7 +203,7 @@ class Collector():
 
 
     def output_modified_csv(self):
-        val = self.make_dataframes(self.df_list)
+        val = self.make_dataframes()
         for v in val:
             self.csv_input[v] = val[v]
         self.csv_input.to_csv(self.directory + "/df_mod.csv", index=False) 
