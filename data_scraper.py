@@ -69,6 +69,7 @@ os.makedirs(subfolder)
 
 # TODO: make saved model names more flexible, instead of relying on it to follow the pattern:
 # <ALGORITHM_NAME>_<GAME>_model_<TIMESTAMP>
+# train based off a previously trained agent 
 if(presaved_model != ""):
     parse_model_name = []
     parse_model_name =  presaved_model.split("_")

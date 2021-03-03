@@ -14,13 +14,11 @@ class Collector():
         self.csv_input = pd.read_csv(path_to_original_csv)
         self.dict_orig = self.csv_input.to_dict()
         self.main_data_dict = OrderedDict()
-        #self.df_list = []
 
     def make_dataframes(self):
         # Make the main Dataframe
         main_df = pd.DataFrame.from_dict(
             self.main_data_dict, orient='index')
-        # df.append(main_df)
         return main_df
 
     def find_life_game_info(self):
@@ -33,12 +31,10 @@ class Collector():
                 env_info[env_num]['life_reward'] = env_info[env_num]['game_reward'] = \
                     env_info[env_num]['total_reward'] = 0
 
-            # TODO: move this check elsewhere?
             if(True):
                 num_rows = len(self.dict_orig["state"])
                 for key in range (num_rows):  
-                    for i in range(self.num_envs):
-                    # for key in range (len(self.dict_orig)):  
+                    for i in range(self.num_envs): 
                         is_end_of_game = False
                         self.main_data_dict[key]['total_game_env_'+str(i)] = env_info[i]['total_game']
                 
@@ -61,7 +57,6 @@ class Collector():
                         # update info in main dict
                         self.main_data_dict[key]['steps_life_env_'+str(i)] = env_info[i]['steps_life'] 
                         self.main_data_dict[key]['steps_game_env_'+str(i)] = env_info[i]['steps_game']
-                        # CustomCallbackA.self.main_data_dict[key]['total_game_env_'+str(i)] = env_info[i]['total_game']
                         self.main_data_dict[key]['life_reward_env_'+str(i)] = env_info[i]['life_reward']
                         self.main_data_dict[key]['total_reward_env_'+str(i)] = env_info[i]['total_reward']
                         self.main_data_dict[key]['is_end_of_game_env_'+str(i)] = is_end_of_game
@@ -86,7 +81,6 @@ class Collector():
             self.main_data_dict[key] = {}
             for i in range(self.num_envs):
                 filepath = self.directory + "/screen/env_" + str(i) + "_screenshot_" + str(screen_num) + "_.png"
-                # print("filepath ", filepath)
                 pacman_coord, pink_ghost_coord, red_ghost_coord, green_ghost_coord, orange_ghost_coord, to_pink_ghost, to_red_ghost, to_green_ghost, to_orange_ghost, pill_eaten, pill_dist, hasBlueGhost = cd.find_all_coords(
                     filepath)
                 self.main_data_dict[key]['pacman_coord_x_env_'+ str(i)] = pacman_coord[0]
@@ -131,7 +125,6 @@ class Collector():
                         self.main_data_dict[key]['dark_blue_ghost4_coord_y_env_'+ str(i)] = ghost_coords[7]
             
             key += 1
-        # print("orddict after pacman locs", self.main_data_dict)
 
     def find_item_locations_pong(self):
         subfolder = os.path.join(self.directory, 'screen/')
@@ -157,9 +150,7 @@ class Collector():
         total_reward = 0
         game_reward = 0
         num_rows = len(self.dict_orig["state"])
-        for key in range (num_rows):
-            print("key ", key)  
-            # self.main_data_dict[key] = {}
+        for key in range (num_rows): 
             if(key < 2):
                 self.main_data_dict[key]['step_reward'] = self.dict_orig['cumulative_episode_reward'][key]
             else:
@@ -189,7 +180,6 @@ class Collector():
                 if(key != num_rows-1 and self.dict_orig['lives'][key] != self.dict_orig['lives'][key+1]
                     and self.dict_orig['lives'][key] != 0):
 
-                    # not sure if this is correct
                     self.main_data_dict[key]['total_life'] = total_life
                     self.main_data_dict[key]['episode_reward'] = episode_reward
                     game_reward += episode_reward
@@ -212,7 +202,6 @@ class Collector():
         print(filepath) 
    
 def main(directory, num_steps, num_envs, algo, env_name):
-    print("******test main func")
     collector = Collector(directory, num_steps, num_envs)
     if(algo == "A2C" or algo == "PPO2"):
         if(env_name == "Pacman"):
@@ -230,9 +219,6 @@ def main(directory, num_steps, num_envs, algo, env_name):
         collector.output_modified_csv()
     
 if __name__ == '__main__':
-    print("in first func")
-    # TODO: add some argument checks
-    # TODO: retrieve info from file name instead
     parser = argparse.ArgumentParser()
     parser.add_argument('--filepath', help='relative path to the csv file', type=str, default="results")
     parser.add_argument('--num_envs', help='set the number of environments', type=int, default=1)
@@ -241,11 +227,9 @@ if __name__ == '__main__':
     parser.add_argument('--env_name', help='environment to use in training', type=str, default="Pacman")
     
     args = parser.parse_args()
-    #  A2C_Pong_data_2021-02-28_11-54-10
     filepath = args.filepath
     num_steps = args.num_steps
     num_envs = args.num_envs
-    # multiply steps and envs
     algo = args.algo.upper()
     env_name = args.env_name
     main(filepath, num_steps * num_envs, num_envs, algo, env_name)
