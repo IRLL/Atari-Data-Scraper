@@ -81,7 +81,7 @@ class Collector():
             self.main_data_dict[key] = {}
             for i in range(self.num_envs):
                 filepath = self.directory + "/screen/env_" + str(i) + "_screenshot_" + str(screen_num) + "_.png"
-                pacman_coord, pink_ghost_coord, red_ghost_coord, green_ghost_coord, orange_ghost_coord, to_pink_ghost, to_red_ghost, to_green_ghost, to_orange_ghost, pill_eaten, pill_dist, hasBlueGhost = cd.find_all_coords(
+                pacman_coord, pink_ghost_coord, red_ghost_coord, green_ghost_coord, orange_ghost_coord, to_pink_ghost, to_red_ghost, to_green_ghost, to_orange_ghost, pill_eaten, pill_dist, hasBlueGhost = cd.find_pacman_coords(
                     filepath)
                 self.main_data_dict[key]['pacman_coord_x_env_'+ str(i)] = pacman_coord[0]
                 self.main_data_dict[key]['pacman_coord_y_env_'+ str(i)] = pacman_coord[1]
