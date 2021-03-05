@@ -146,7 +146,7 @@ class Collector():
     def find_life_game_info_dqn(self):
         total_life = total_game = steps_life = steps_game = 1
         prev_life = 3
-        episode_reward = 0
+        life_reward = 0
         total_reward = 0
         game_reward = 0
         num_rows = len(self.dict_orig["state"])
@@ -160,7 +160,7 @@ class Collector():
                     self.main_data_dict[key]['step_reward'] = self.dict_orig['cumulative_episode_reward'][key] - \
                         self.dict_orig['cumulative_episode_reward'][key-1]
                 
-            episode_reward += self.main_data_dict[key]['step_reward'] 
+            life_reward += self.main_data_dict[key]['step_reward'] 
             total_reward += self.main_data_dict[key]['step_reward'] 
             if(True):
                 # game over (epoch)
@@ -171,7 +171,7 @@ class Collector():
                     total_game += 1
                     steps_game = steps_life = 0
                     game_reward = 0
-                    episode_reward = 0
+                    life_reward = 0
                 self.main_data_dict[key]['steps_game'] = steps_game
                 self.main_data_dict[key]['total_game'] = total_game
 
@@ -181,11 +181,11 @@ class Collector():
                     and self.dict_orig['lives'][key] != 0):
 
                     self.main_data_dict[key]['total_life'] = total_life
-                    self.main_data_dict[key]['episode_reward'] = episode_reward
-                    game_reward += episode_reward
+                    self.main_data_dict[key]['life_reward'] = life_reward
+                    game_reward += life_reward
                     total_life += 1
                     steps_life = 0
-                    episode_reward = 0
+                    life_reward = 0
                 # normal step
                 prev_life = self.dict_orig['lives'][key]
                 steps_life += 1
