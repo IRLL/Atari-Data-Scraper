@@ -4,6 +4,7 @@ from collections import OrderedDict
 import os
 import colour_detection as cd
 import argparse
+import shutil
 
 class Collector():
     def __init__(self, directory='results', num_timesteps=10, num_envs = 1):
@@ -201,7 +202,13 @@ class Collector():
         print("Making modified csv with additional info and path is: ")
         print(filepath) 
    
-def main(directory, num_steps, num_envs, algo, env_name):
+    def remove_screenshots(self):
+        screenshot_path = os.path.join(self.directory, "screen")
+        if os.path.exists(screenshot_path):
+            print("Removing all screenshots from ", screenshot_path)
+            shutil.rmtree(screenshot_path)
+
+def main(directory, num_steps, num_envs, algo, env_name, isRemoveScreenshots):
     collector = Collector(directory, num_steps, num_envs)
     if(algo == "A2C" or algo == "PPO2"):
         if(env_name == "Pacman"):
@@ -217,6 +224,8 @@ def main(directory, num_steps, num_envs, algo, env_name):
         elif(env_name == "Pong"):
             collector.find_item_locations_pong()
         collector.output_modified_csv()
+    if(isRemoveScreenshots):
+        collector.remove_screenshots()
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -225,6 +234,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_steps', help='set the number of steps/actions you want the agent to take', type=int, default=1000)
     parser.add_argument('--algo', help='set the algorithm with which to train this model', type=str, default="DQN")
     parser.add_argument('--env_name', help='environment to use in training', type=str, default="Pacman")
+    parser.add_argument('--remove_screenshots', help='delete the screenshots', action='store_true', default=False)
     
     args = parser.parse_args()
     filepath = args.filepath
@@ -232,5 +242,6 @@ if __name__ == '__main__':
     num_envs = args.num_envs
     algo = args.algo.upper()
     env_name = args.env_name
-    main(filepath, num_steps * num_envs, num_envs, algo, env_name)
+    isRemoveScreenshots = args.remove_screenshots
+    main(filepath, num_steps * num_envs, num_envs, algo, env_name, isRemoveScreenshots)
     

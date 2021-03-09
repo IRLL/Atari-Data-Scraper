@@ -23,9 +23,13 @@ Additional flags:
 \
 ⋅⋅⋅--collect_extra include if you want to collect additional information such as location of items in the game (i.e. the agent), and computed rewards for plotting. See below on how to run this separately.
 \
+⋅⋅⋅--remove_screenshots include if you want to delete the screenshots folder, include only if --collect_extra is enabled. 
+\
 ⋅⋅⋅--save include if you want the training model to be saved for future use
 \
 ⋅⋅⋅--model [Model Name] if you want to use a pre-existing and pre-trained model, some examples can be found in the models folder
+
+
 
 Example Usage:
 \

@@ -43,6 +43,7 @@ parser.add_argument('--save', help='save the trained model', action='store_true'
 parser.add_argument('--environment', help='environment to use in training', type=str, default="MsPacmanNoFrameskip-v4")
 parser.add_argument('--model', help = 'use a saved pretrained model', type=str, default = "")
 parser.add_argument('--collect_extra', help='collect the extra information from game', action='store_true', default=False)
+parser.add_argument('--remove_screenshots', help='delete the screenshots', action='store_true', default=False)
 
 args = parser.parse_args()
 isLives = args.lives
@@ -59,6 +60,9 @@ env_name = environment_to_name[environment]
 isSave = args.save
 presaved_model = args.model
 isCollectExtra = args.collect_extra
+isRemoveScreenshots = args.remove_screenshots
+
+print("isremove ", isRemoveScreenshots)
 
 # create folder and subfolders for data
 tmp_name = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
@@ -142,6 +146,8 @@ elif(algo == "A2C" or algo == "PPO2"):
         elif(env_name == "Pong"):
             collector.find_item_locations_pong()
         collector.output_modified_csv()
+        if(isRemoveScreenshots):
+            collector.remove_screenshots()
         
 elif(algo == "DQN"):
     env = make_atari(environment)
@@ -160,6 +166,8 @@ elif(algo == "DQN"):
         elif(env_name == "Pong"):
             collector.find_item_locations_pong()
         collector.output_modified_csv()
+        if(isRemoveScreenshots):
+            collector.remove_screenshots()
 else:
     print("Incorrect algorithm. Select pass --algo params: DQN or A2C or PPO2.")
     sys.exit(1)
