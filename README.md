@@ -35,7 +35,7 @@ Example Usage:
 \
 ``` python data_scraper.py --num_envs 1 --num_steps 2000 --algo DQN --save --environment PongNoFrameskip-v4 --collect_extra ```
 
-```python data_scraper.py --lives --num_envs 2 --num_steps 20 --algo A2C --save --environment MsPacmanNoFrameskip-v4 ```
+```python data_scraper.py --lives --num_envs 2 --num_steps 2000 --algo A2C --save --environment MsPacmanNoFrameskip-v4 ```
 
 
 To collect additional information (location of agents/items, distance between item and agent, computed rewards) from an existing CSV file, run the following command:

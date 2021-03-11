@@ -200,7 +200,7 @@ class CustomCallback(BaseCallback):
             if(self.game == "Pong"):
                 CustomCallback.main_data_dict[key]['curr_score_env_0'] = self.locals['episode_rewards'][-1]
             else:
-                CustomCallback.main_data_dict[key]['cumulative_episode_reward'] =  self.locals['episode_rewards'][-1]
+                CustomCallback.main_data_dict[key]['cumulative_life_reward'] =  self.locals['episode_rewards'][-1]
             if(self.isLives == True):
                 CustomCallback.main_data_dict[CustomCallback.step]['lives'] = self.locals['info']['ale.lives']
         else:

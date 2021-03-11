@@ -62,7 +62,7 @@ class Collector():
                         self.main_data_dict[key]['total_reward_env_'+str(i)] = env_info[i]['total_reward']
                         self.main_data_dict[key]['is_end_of_game_env_'+str(i)] = is_end_of_game
 
-                        # lost a life (episode)
+                        # lost a life 
                         # record BEFORE lives is decremented
                         if(key != num_rows-1 and self.dict_orig['lives_env_'+str(i)][key] != self.dict_orig['lives_env_'+str(i)][key+1]
                             and self.dict_orig['lives_env_'+str(i)][key+1] != 0):
@@ -153,13 +153,13 @@ class Collector():
         num_rows = len(self.dict_orig["state"])
         for key in range (num_rows): 
             if(key < 2):
-                self.main_data_dict[key]['step_reward'] = self.dict_orig['cumulative_episode_reward'][key]
+                self.main_data_dict[key]['step_reward'] = self.dict_orig['cumulative_life_reward'][key]
             else:
                 if(self.dict_orig['lives'][key] == 0):
                     self.main_data_dict[key]['step_reward'] = 0
                 else:
-                    self.main_data_dict[key]['step_reward'] = self.dict_orig['cumulative_episode_reward'][key] - \
-                        self.dict_orig['cumulative_episode_reward'][key-1]
+                    self.main_data_dict[key]['step_reward'] = self.dict_orig['cumulative_life_reward'][key] - \
+                        self.dict_orig['cumulative_life_reward'][key-1]
                 
             life_reward += self.main_data_dict[key]['step_reward'] 
             total_reward += self.main_data_dict[key]['step_reward'] 
