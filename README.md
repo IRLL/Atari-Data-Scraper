@@ -1,6 +1,8 @@
 # Atari Data Scraper
 This is a tool that can be used to collect data during the training of Atari agents in OpenAI Gym and Stable Baselines. The data is output as a CSV file that can then be used in creating visualizations as seen in the sample Jupyter notebook above. 
 
+The article can be found here: https://arxiv.org/abs/2104.04893
+
 Getting Started
 ------
 
